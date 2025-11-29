@@ -39,9 +39,8 @@ export default function UsersPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
 
-  const formatPhoneNumber = (number: string) => {
-    return number.replace("@s.whatsapp.net", "");
-  };
+  const formatPhoneNumber = (number: string) =>
+    number.replace(/^62/, "0").replace("@s.whatsapp.net", "");
 
   const filteredUsers = users.filter((user) =>
     formatPhoneNumber(user.number).toLowerCase().includes(searchQuery.toLowerCase())
@@ -57,10 +56,7 @@ export default function UsersPage() {
 
     setIsDeleting(true);
     try {
-      const { error } = await supabase
-        .from("users")
-        .delete()
-        .eq("id", userToDelete.id);
+      const { error } = await supabase.from("users").delete().eq("id", userToDelete.id);
 
       if (error) throw error;
 
@@ -363,7 +359,7 @@ export default function UsersPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel 
+            <AlertDialogCancel
               disabled={isDeleting}
               className="font-semibold hover:bg-zinc-50 border-zinc-200"
             >
