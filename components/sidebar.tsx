@@ -1,14 +1,22 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { LayoutDashboard, Users, Menu, X } from "lucide-react";
+import { LayoutDashboard, Users, Menu, X, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { useAuth } from "@/components/auth-provider";
+import { Button } from "@/components/ui/button";
 
 export function Sidebar() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    setIsMobileMenuOpen(false);
+  };
 
   const menuItems = [
     {
@@ -131,12 +139,25 @@ export function Sidebar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="pt-6 border-t border-zinc-200/80"
+            className="pt-6 border-t border-zinc-200/80 space-y-4"
           >
-            <div className="px-4 py-3 bg-linear-to-br from-zinc-50 to-zinc-100/50 rounded-xl border border-zinc-200/60">
-              <p className="text-xs font-semibold text-zinc-600 mb-1">WhatsApp Bot Monitor</p>
-              <p className="text-[10px] text-zinc-500">Real-time attendance tracking</p>
-            </div>
+            {/* User Info */}
+            {user && (
+              <div className="px-4 py-3 bg-linear-to-br from-blue-50 to-blue-100/50 rounded-xl border border-blue-200/60">
+                <p className="text-xs font-semibold text-blue-700 mb-0.5">Logged in as</p>
+                <p className="text-[11px] text-blue-600 font-mono truncate">{user.email}</p>
+              </div>
+            )}
+
+            {/* Logout Button */}
+            <Button
+              onClick={handleSignOut}
+              variant="outline"
+              className="w-full justify-start gap-3 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 hover:border-red-300 font-semibold"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </Button>
           </motion.div>
         </div>
       </aside>

@@ -18,14 +18,8 @@ import {
 } from "@/components/ui/table";
 
 export default function UsersPage() {
-  const { users, loading, error } = useRealtimeUsers();
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { users, loading } = useRealtimeUsers();
   const [searchQuery, setSearchQuery] = useState("");
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 1000);
-  };
 
   const formatPhoneNumber = (number: string) => {
     return number.replace("@s.whatsapp.net", "");

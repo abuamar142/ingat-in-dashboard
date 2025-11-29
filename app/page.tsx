@@ -1,63 +1,63 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { motion, Variants, TargetAndTransition } from "framer-motion";
-import { RefreshCw, Users, CheckCircle, XCircle, AlertTriangle, Activity } from "lucide-react";
+import { RefreshCw, Users, CheckCircle, AlertTriangle, Activity } from "lucide-react";
 
 import { useRealtimeUsers } from "@/hooks/useRealtimeUsers";
-import { Stats } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Stats } from "@/lib/types";
 
 export default function Home() {
   const { users, loading, error } = useRealtimeUsers();
-  const [stats, setStats] = useState<Stats>({
-    totalUsers: 0,
-    absenPagi: { sudah: 0, belum: 0, percentage: 0 },
-    absenSore: { sudah: 0, belum: 0, percentage: 0 },
-  });
   const [lastUpdate, setLastUpdate] = useState("");
 
-  useEffect(() => {
-    if (users.length > 0) {
-      const totalUsers = users.length;
-      const absenPagiSudah = users.filter((u) => u.absen_pagi).length;
-      const absenSoreSudah = users.filter((u) => u.absen_sore).length;
-
-      setStats({
-        totalUsers,
-        absenPagi: {
-          sudah: absenPagiSudah,
-          belum: totalUsers - absenPagiSudah,
-          percentage: totalUsers > 0 ? Math.round((absenPagiSudah / totalUsers) * 100) : 0,
-        },
-        absenSore: {
-          sudah: absenSoreSudah,
-          belum: totalUsers - absenSoreSudah,
-          percentage: totalUsers > 0 ? Math.round((absenSoreSudah / totalUsers) * 100) : 0,
-        },
-      });
+  const stats: Stats = useMemo(() => {
+    if (users.length === 0) {
+      return {
+        totalUsers: 0,
+        absenPagi: { sudah: 0, belum: 0, percentage: 0 },
+        absenSore: { sudah: 0, belum: 0, percentage: 0 },
+      };
     }
-    updateTimestamp();
+
+    const totalUsers = users.length;
+    const absenPagiSudah = users.filter((u) => u.absen_pagi).length;
+    const absenSoreSudah = users.filter((u) => u.absen_sore).length;
+
+    return {
+      totalUsers,
+      absenPagi: {
+        sudah: absenPagiSudah,
+        belum: totalUsers - absenPagiSudah,
+        percentage: totalUsers > 0 ? Math.round((absenPagiSudah / totalUsers) * 100) : 0,
+      },
+      absenSore: {
+        sudah: absenSoreSudah,
+        belum: totalUsers - absenSoreSudah,
+        percentage: totalUsers > 0 ? Math.round((absenSoreSudah / totalUsers) * 100) : 0,
+      },
+    };
   }, [users]);
 
+  // Update timestamp every second
   useEffect(() => {
-    const interval = setInterval(() => {
-      updateTimestamp();
-    }, 1000);
+    const updateTime = () => {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+      setLastUpdate(timeString);
+    };
+
+    updateTime(); // Initial call
+    const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, []);
-
-  const updateTimestamp = () => {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString("id-ID", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-    setLastUpdate(timeString);
-  };
 
   const pageTransition: Variants = {
     hidden: { opacity: 0 },

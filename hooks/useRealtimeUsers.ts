@@ -9,7 +9,7 @@ export function useRealtimeUsers() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let channel: any = null;
+    let channel: unknown = null;
 
     async function setup() {
       try {
@@ -47,9 +47,9 @@ export function useRealtimeUsers() {
       try {
         if (channel) {
           const supabase = getSupabaseClient();
-          supabase.removeChannel(channel);
+          supabase.removeChannel(channel as any);
         }
-      } catch (e) {
+      } catch {
         // ignore cleanup errors
       }
     };

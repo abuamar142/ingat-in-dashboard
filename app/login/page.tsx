@@ -41,7 +41,7 @@ export default function LoginPage() {
       } else {
         router.push("/");
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred");
     } finally {
       setLoading(false);
@@ -125,7 +125,7 @@ export default function LoginPage() {
                   Email Address
                 </Label>
                 <div className="relative group">
-                  <Mail className="absolute left-4 top-3.5 h-5 w-5 text-zinc-400 group-focus-within:text-zinc-600 transition-colors" />
+                  <Mail className="absolute left-4 top-3.5 h-5 w-5 text-zinc-500 group-focus-within:text-blue-600 transition-colors" />
                   <Input
                     id="email"
                     type="email"
@@ -147,7 +147,7 @@ export default function LoginPage() {
                   Password
                 </Label>
                 <div className="relative group">
-                  <Lock className="absolute left-4 top-3.5 h-5 w-5 text-zinc-400 group-focus-within:text-zinc-600 transition-colors" />
+                  <Lock className="absolute left-4 top-3.5 h-5 w-5 text-zinc-500 group-focus-within:text-blue-600 transition-colors" />
                   <Input
                     id="password"
                     type="password"
