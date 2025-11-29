@@ -1,0 +1,285 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { RefreshCw, Users, CheckCircle, XCircle, Search } from "lucide-react";
+import { useState } from "react";
+
+import { useRealtimeUsers } from "@/hooks/useRealtimeUsers";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+export default function UsersPage() {
+  const { users, loading, error } = useRealtimeUsers();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    setTimeout(() => setIsRefreshing(false), 1000);
+  };
+
+  const formatPhoneNumber = (number: string) => {
+    return number.replace("@s.whatsapp.net", "");
+  };
+
+  const filteredUsers = users.filter((user) =>
+    formatPhoneNumber(user.number).toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const pageTransition = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        duration: 0.4,
+        ease: [0.4, 0, 0.2, 1] as const,
+      },
+    },
+  };
+
+  return (
+    <motion.div variants={pageTransition} initial="hidden" animate="show" className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col gap-6">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight bg-linear-to-br from-zinc-900 via-zinc-800 to-zinc-700 bg-clip-text text-transparent mb-2">
+            Users Management
+          </h1>
+          <p className="text-lg text-zinc-600">
+            View and manage all registered users in the system
+          </p>
+        </div>
+
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="border-blue-100/50 bg-linear-to-br from-white via-blue-50/30 to-white">
+            <CardContent className="flex items-center justify-between p-6">
+              <div>
+                <p className="text-sm font-semibold text-zinc-600 uppercase tracking-wide mb-1">
+                  Total Users
+                </p>
+                <p className="text-3xl font-bold text-zinc-900">{users.length}</p>
+              </div>
+              <div className="p-3 bg-linear-to-br from-blue-500 to-blue-600 rounded-xl text-white shadow-lg">
+                <Users className="h-6 w-6" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-emerald-100/50 bg-linear-to-br from-white via-emerald-50/30 to-white">
+            <CardContent className="flex items-center justify-between p-6">
+              <div>
+                <p className="text-sm font-semibold text-zinc-600 uppercase tracking-wide mb-1">
+                  Morning Check-ins
+                </p>
+                <p className="text-3xl font-bold text-zinc-900">
+                  {users.filter((u) => u.absen_pagi).length}
+                </p>
+              </div>
+              <div className="p-3 bg-linear-to-br from-emerald-500 to-emerald-600 rounded-xl text-white shadow-lg">
+                <CheckCircle className="h-6 w-6" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-violet-100/50 bg-linear-to-br from-white via-violet-50/30 to-white">
+            <CardContent className="flex items-center justify-between p-6">
+              <div>
+                <p className="text-sm font-semibold text-zinc-600 uppercase tracking-wide mb-1">
+                  Evening Check-ins
+                </p>
+                <p className="text-3xl font-bold text-zinc-900">
+                  {users.filter((u) => u.absen_sore).length}
+                </p>
+              </div>
+              <div className="p-3 bg-linear-to-br from-violet-500 to-violet-600 rounded-xl text-white shadow-lg">
+                <CheckCircle className="h-6 w-6" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Users Table */}
+      <Card className="shadow-xl border-zinc-200/50 overflow-hidden bg-white/90 backdrop-blur-2xl">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-zinc-100/80 pb-6 bg-linear-to-br from-zinc-50/50 to-white">
+          <div>
+            <CardTitle className="text-2xl font-bold bg-linear-to-br from-zinc-900 to-zinc-700 bg-clip-text text-transparent flex items-center gap-3">
+              <Users className="h-6 w-6 text-zinc-700" />
+              User List
+            </CardTitle>
+            <p className="text-sm text-zinc-500 mt-2 font-medium">
+              {filteredUsers.length} user{filteredUsers.length !== 1 ? "s" : ""} found
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+              <Input
+                type="text"
+                placeholder="Search by number..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 w-64 border-zinc-300 focus:border-blue-500"
+              />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-4">
+              <RefreshCw className="h-10 w-10 animate-spin text-blue-500" />
+              <p className="text-sm text-zinc-500 font-medium">Loading user data...</p>
+            </div>
+          ) : filteredUsers.length > 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent border-b-2 border-zinc-200/80 bg-linear-to-r from-zinc-50/80 via-zinc-50/50 to-zinc-50/80">
+                    <TableHead className="w-[70px] font-bold text-zinc-700 text-xs uppercase tracking-wider py-4 pl-6">
+                      No
+                    </TableHead>
+                    <TableHead className="font-bold text-zinc-700 text-xs uppercase tracking-wider py-4 min-w-[180px]">
+                      WhatsApp Number
+                    </TableHead>
+                    <TableHead className="font-bold text-zinc-700 text-xs uppercase tracking-wider py-4 text-center min-w-[150px]">
+                      Morning Check-in
+                    </TableHead>
+                    <TableHead className="font-bold text-zinc-700 text-xs uppercase tracking-wider py-4 text-center min-w-[150px]">
+                      Evening Check-in
+                    </TableHead>
+                    <TableHead className="font-bold text-zinc-700 text-xs uppercase tracking-wider py-4 min-w-[180px]">
+                      Last Activity
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredUsers.map((user, idx) => (
+                    <motion.tr
+                      key={user.id || idx}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      whileHover={{
+                        backgroundColor: "rgba(250, 250, 250, 0.9)",
+                      }}
+                      className="border-b border-zinc-100 cursor-pointer transition-all duration-200 group"
+                    >
+                      <TableCell className="font-bold text-zinc-800 py-5 pl-6">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 group-hover:bg-blue-100 text-zinc-700 group-hover:text-blue-700 transition-colors text-sm font-semibold">
+                          {idx + 1}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-semibold text-zinc-900 py-5">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          <span className="font-mono text-sm">
+                            {formatPhoneNumber(user.number)}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-5">
+                        <div className="flex justify-center">
+                          <Badge
+                            variant="outline"
+                            className={`font-semibold text-xs px-4 py-1.5 rounded-full shadow-sm transition-all duration-200 ${
+                              user.absen_pagi
+                                ? "bg-linear-to-r from-emerald-50 to-emerald-100 text-emerald-700 border-emerald-300 hover:shadow-md hover:shadow-emerald-200"
+                                : "bg-zinc-50 text-zinc-500 border-zinc-200 hover:bg-zinc-100"
+                            }`}
+                          >
+                            {user.absen_pagi ? (
+                              <span className="flex items-center gap-1.5">
+                                <CheckCircle className="h-3.5 w-3.5" />
+                                Completed
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1.5">
+                                <XCircle className="h-3.5 w-3.5" />
+                                Pending
+                              </span>
+                            )}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-5">
+                        <div className="flex justify-center">
+                          <Badge
+                            variant="outline"
+                            className={`font-semibold text-xs px-4 py-1.5 rounded-full shadow-sm transition-all duration-200 ${
+                              user.absen_sore
+                                ? "bg-linear-to-r from-violet-50 to-violet-100 text-violet-700 border-violet-300 hover:shadow-md hover:shadow-violet-200"
+                                : "bg-zinc-50 text-zinc-500 border-zinc-200 hover:bg-zinc-100"
+                            }`}
+                          >
+                            {user.absen_sore ? (
+                              <span className="flex items-center gap-1.5">
+                                <CheckCircle className="h-3.5 w-3.5" />
+                                Completed
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1.5">
+                                <XCircle className="h-3.5 w-3.5" />
+                                Pending
+                              </span>
+                            )}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-zinc-600 text-sm font-medium py-5">
+                        {user.last_checkin ? (
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-zinc-800 font-semibold">
+                              {new Date(user.last_checkin).toLocaleDateString("id-ID", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              })}
+                            </span>
+                            <span className="text-zinc-500 text-xs">
+                              {new Date(user.last_checkin).toLocaleTimeString("id-ID", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-zinc-400 italic">No activity</span>
+                        )}
+                      </TableCell>
+                    </motion.tr>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="text-center py-20 text-zinc-500 bg-linear-to-br from-zinc-50/80 to-zinc-100/40"
+            >
+              <Users className="mx-auto h-16 w-16 mb-6 text-zinc-300" />
+              <h3 className="text-xl font-bold text-zinc-800 mb-2">
+                {searchQuery ? "No users match your search" : "No users found"}
+              </h3>
+              <p className="text-zinc-500 font-medium">
+                {searchQuery
+                  ? "Try a different search term"
+                  : "Users will appear here once they interact with the bot"}
+              </p>
+            </motion.div>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}

@@ -1,24 +1,29 @@
-'use client'
+"use client";
 
-import { useRealtimeUsers } from '@/hooks/useRealtimeUsers'
-import { Stats } from '@/lib/types'
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
+import { motion, Variants, TargetAndTransition } from "framer-motion";
+import { RefreshCw, Users, CheckCircle, XCircle, AlertTriangle, Activity } from "lucide-react";
+
+import { useRealtimeUsers } from "@/hooks/useRealtimeUsers";
+import { Stats } from "@/lib/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 
 export default function Home() {
-  const { users, loading, error } = useRealtimeUsers()
+  const { users, loading, error } = useRealtimeUsers();
   const [stats, setStats] = useState<Stats>({
     totalUsers: 0,
     absenPagi: { sudah: 0, belum: 0, percentage: 0 },
     absenSore: { sudah: 0, belum: 0, percentage: 0 },
-  })
-  const [lastUpdate, setLastUpdate] = useState('')
-  const [isRefreshing, setIsRefreshing] = useState(false)
+  });
+  const [lastUpdate, setLastUpdate] = useState("");
 
   useEffect(() => {
     if (users.length > 0) {
-      const totalUsers = users.length
-      const absenPagiSudah = users.filter((u) => u.absen_pagi).length
-      const absenSoreSudah = users.filter((u) => u.absen_sore).length
+      const totalUsers = users.length;
+      const absenPagiSudah = users.filter((u) => u.absen_pagi).length;
+      const absenSoreSudah = users.filter((u) => u.absen_sore).length;
 
       setStats({
         totalUsers,
@@ -32,202 +37,329 @@ export default function Home() {
           belum: totalUsers - absenSoreSudah,
           percentage: totalUsers > 0 ? Math.round((absenSoreSudah / totalUsers) * 100) : 0,
         },
-      })
+      });
     }
-    updateTimestamp()
-  }, [users])
+    updateTimestamp();
+  }, [users]);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      updateTimestamp()
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [])
+      updateTimestamp();
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const updateTimestamp = () => {
-    const now = new Date()
-    const timeString = now.toLocaleTimeString('id-ID', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    })
-    setLastUpdate(timeString)
-  }
+    const now = new Date();
+    const timeString = now.toLocaleTimeString("id-ID", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+    setLastUpdate(timeString);
+  };
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true)
-    setTimeout(() => setIsRefreshing(false), 1000)
-  }
+  const pageTransition: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        duration: 0.4,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  const container: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const item: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 80,
+        damping: 15,
+      },
+    },
+  };
+
+  const cardHover: TargetAndTransition = {
+    y: -8,
+    transition: { type: "spring", stiffness: 300, damping: 20 },
+  };
+
+  const formatPhoneNumber = (number: string) => {
+    return number.replace("@s.whatsapp.net", "");
+  };
 
   return (
-    <div className="bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500 min-h-screen">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header */}
-        <header className="text-center text-white mb-8 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl font-bold mb-2 flex items-center justify-center gap-2">
-            📊 Ingat-In Dashboard
-          </h1>
-          <p className="text-white/90 text-lg">Monitoring Absensi WhatsApp Bot</p>
-          <div className="mt-4 flex items-center justify-center gap-2 flex-wrap">
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-              <div className={`w-3 h-3 rounded-full animate-pulse ${error ? 'bg-red-400' : 'bg-green-400'}`}></div>
-              <span className="text-sm font-medium">{error ? 'Error' : 'Live'}</span>
-            </div>
-            <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium">
-              Last update: <span>{lastUpdate || '-'}</span>
-            </div>
+    <motion.div variants={pageTransition} initial="hidden" animate="show" className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight bg-linear-to-br from-zinc-900 via-zinc-800 to-zinc-700 bg-clip-text text-transparent mb-2">
+              Dashboard Overview
+            </h1>
+            <p className="text-lg text-zinc-600">
+              Real-time monitoring of WhatsApp Bot attendance system
+            </p>
           </div>
-        </header>
-
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 animate-fade-in">
-            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg" role="alert">
-              <div className="flex">
-                <div className="shrink-0">
-                  <svg className="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <p className="font-medium">⚠️ Gagal memuat data</p>
-                  <p className="text-sm mt-1">{error}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Total Users Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-fade-in">
-            <h3 className="text-gray-600 text-sm font-semibold uppercase tracking-wide mb-2">Total Users</h3>
-            <div className="text-4xl font-bold text-gray-800 mb-1">
-              {loading ? (
-                <div className="animate-pulse bg-gray-200 h-12 w-20 rounded"></div>
-              ) : (
-                stats.totalUsers
-              )}
-            </div>
-            <p className="text-sm text-gray-500">Terdaftar di bot</p>
-          </div>
-
-          {/* Absen Pagi Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <h3 className="text-gray-600 text-sm font-semibold uppercase tracking-wide mb-2">Absen Pagi</h3>
-            <div className="text-4xl font-bold text-gray-800 mb-1">
-              {loading ? (
-                <div className="animate-pulse bg-gray-200 h-12 w-24 rounded"></div>
-              ) : (
-                `${stats.absenPagi.sudah}/${stats.totalUsers}`
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
-                <div
-                  className="bg-linear-to-r from-blue-500 to-blue-600 h-full transition-all duration-500"
-                  style={{ width: `${stats.absenPagi.percentage}%` }}
-                ></div>
-              </div>
-              <span className="text-lg font-semibold text-indigo-600">{stats.absenPagi.percentage}%</span>
-            </div>
-          </div>
-
-          {/* Absen Sore Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            <h3 className="text-gray-600 text-sm font-semibold uppercase tracking-wide mb-2">Absen Sore</h3>
-            <div className="text-4xl font-bold text-gray-800 mb-1">
-              {loading ? (
-                <div className="animate-pulse bg-gray-200 h-12 w-24 rounded"></div>
-              ) : (
-                `${stats.absenSore.sudah}/${stats.totalUsers}`
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
-                <div
-                  className="bg-linear-to-r from-purple-500 to-purple-600 h-full transition-all duration-500"
-                  style={{ width: `${stats.absenSore.percentage}%` }}
-                ></div>
-              </div>
-              <span className="text-lg font-semibold text-purple-600">{stats.absenSore.percentage}%</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Users Table Section */}
-        <div className="bg-white rounded-xl shadow-lg p-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-            <h2 className="text-2xl font-bold text-gray-800">Daftar Users</h2>
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 shadow-md hover:shadow-lg disabled:opacity-50"
-            >
-              <span>{isRefreshing ? '⏳' : '🔄'}</span> Refresh
-            </button>
-          </div>
-
-          <div className="overflow-x-auto">
-            {loading ? (
-              <div className="text-center py-12 text-gray-500">
-                <div className="animate-spin w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-                <p>Loading data...</p>
-              </div>
-            ) : users.length > 0 ? (
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nomor WhatsApp</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Absen Pagi</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Absen Sore</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Check-in</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {users.map((user, idx) => (
-                    <tr key={user.id || idx} className="hover:bg-gray-50 transition-colors duration-150">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{idx + 1}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.number}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            user.absen_pagi ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                          }`}
-                        >
-                          {user.absen_pagi ? '✓ Sudah' : '✗ Belum'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            user.absen_sore ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                          }`}
-                        >
-                          {user.absen_sore ? '✓ Sudah' : '✗ Belum'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {user.last_checkin ? new Date(user.last_checkin).toLocaleString('id-ID') : '-'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <div className="text-center py-16">
-                <svg className="mx-auto h-20 w-20 text-gray-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Belum ada user yang terdaftar</h3>
-                <p className="text-gray-500">User akan muncul setelah mengirim pesan ke bot</p>
-              </div>
-            )}
+          <div className="flex items-center gap-2 text-sm text-zinc-500 bg-white/70 px-4 py-2 rounded-xl border border-zinc-200/60 backdrop-blur-sm shadow-sm">
+            <span className={`relative flex h-2.5 w-2.5`}>
+              <span
+                className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                  error ? "bg-red-500" : "bg-emerald-500"
+                }`}
+              ></span>
+              <span
+                className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                  error ? "bg-red-500" : "bg-emerald-500"
+                }`}
+              ></span>
+            </span>
+            <Activity className="h-4 w-4 text-zinc-400" />
+            <span className="font-medium">{lastUpdate}</span>
           </div>
         </div>
       </div>
-    </div>
-  )
+
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          className="mb-6"
+        >
+          <Card className="border-destructive bg-destructive/10">
+            <CardContent className="flex items-center gap-4 p-4 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              <div>
+                <p className="font-medium">Gagal memuat data</p>
+                <p className="text-sm">{error}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      <motion.div variants={container} initial="hidden" animate="show" className="space-y-8">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <motion.div variants={item} whileHover={cardHover} className="h-full">
+            <Card className="relative overflow-hidden border-blue-100/50 bg-linear-to-br from-white via-blue-50/30 to-white backdrop-blur-xl shadow-lg hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 group h-full">
+              <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-blue-400/10 blur-2xl group-hover:bg-blue-400/20 transition-colors duration-500" />
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
+                <CardTitle className="text-sm font-semibold text-zinc-600 uppercase tracking-wide">
+                  Total Users
+                </CardTitle>
+                <motion.div
+                  whileHover={{ rotate: 360, scale: 1.1 }}
+                  transition={{ duration: 0.6 }}
+                  className="p-3 bg-linear-to-br from-blue-500 to-blue-600 rounded-2xl text-white shadow-lg shadow-blue-500/30"
+                >
+                  <Users className="h-5 w-5" />
+                </motion.div>
+              </CardHeader>
+              <CardContent className="pt-2 relative z-10">
+                <div className="text-5xl font-bold bg-linear-to-br from-zinc-900 to-zinc-700 bg-clip-text text-transparent mb-3">
+                  {loading ? (
+                    <div className="h-12 w-24 bg-linear-to-r from-zinc-200 to-zinc-300 animate-pulse rounded-lg" />
+                  ) : (
+                    <motion.span
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      {stats.totalUsers}
+                    </motion.span>
+                  )}
+                </div>
+                <p className="text-sm text-zinc-500 flex items-center gap-1.5 font-medium">
+                  <span className="text-blue-600 font-semibold">↗ +2.5%</span> from last week
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div variants={item} whileHover={cardHover} className="h-full">
+            <Card className="relative overflow-hidden border-emerald-100/50 bg-linear-to-br from-white via-emerald-50/30 to-white backdrop-blur-xl shadow-lg hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 group h-full">
+              <div className="absolute inset-0 bg-linear-to-br from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-emerald-400/10 blur-2xl group-hover:bg-emerald-400/20 transition-colors duration-500" />
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
+                <CardTitle className="text-sm font-semibold text-zinc-600 uppercase tracking-wide">
+                  Absen Pagi
+                </CardTitle>
+                <motion.div
+                  whileHover={{ rotate: 360, scale: 1.1 }}
+                  transition={{ duration: 0.6 }}
+                  className="p-3 bg-linear-to-br from-emerald-500 to-emerald-600 rounded-2xl text-white shadow-lg shadow-emerald-500/30"
+                >
+                  <CheckCircle className="h-5 w-5" />
+                </motion.div>
+              </CardHeader>
+              <CardContent className="pt-2 relative z-10">
+                <div className="text-5xl font-bold bg-linear-to-br from-zinc-900 to-zinc-700 bg-clip-text text-transparent mb-3">
+                  {loading ? (
+                    <div className="h-12 w-32 bg-linear-to-r from-zinc-200 to-zinc-300 animate-pulse rounded-lg" />
+                  ) : (
+                    <motion.span
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      {stats.absenPagi.sudah}/{stats.totalUsers}
+                    </motion.span>
+                  )}
+                </div>
+                <Progress
+                  value={stats.absenPagi.percentage}
+                  className="h-2 bg-emerald-100/60 [&>div]:bg-linear-to-r [&>div]:from-emerald-500 [&>div]:to-emerald-600 rounded-full mb-3"
+                />
+                <p className="text-sm text-zinc-500 font-medium">
+                  <span className="text-emerald-600 font-semibold">
+                    {stats.absenPagi.percentage}%
+                  </span>{" "}
+                  Completion rate
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div variants={item} whileHover={cardHover} className="h-full">
+            <Card className="relative overflow-hidden border-violet-100/50 bg-linear-to-br from-white via-violet-50/30 to-white backdrop-blur-xl shadow-lg hover:shadow-2xl hover:shadow-violet-500/10 transition-all duration-500 group h-full">
+              <div className="absolute inset-0 bg-linear-to-br from-violet-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-violet-400/10 blur-2xl group-hover:bg-violet-400/20 transition-colors duration-500" />
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
+                <CardTitle className="text-sm font-semibold text-zinc-600 uppercase tracking-wide">
+                  Absen Sore
+                </CardTitle>
+                <motion.div
+                  whileHover={{ rotate: 360, scale: 1.1 }}
+                  transition={{ duration: 0.6 }}
+                  className="p-3 bg-linear-to-br from-violet-500 to-violet-600 rounded-2xl text-white shadow-lg shadow-violet-500/30"
+                >
+                  <CheckCircle className="h-5 w-5" />
+                </motion.div>
+              </CardHeader>
+              <CardContent className="pt-2 relative z-10">
+                <div className="text-5xl font-bold bg-linear-to-br from-zinc-900 to-zinc-700 bg-clip-text text-transparent mb-3">
+                  {loading ? (
+                    <div className="h-12 w-32 bg-linear-to-r from-zinc-200 to-zinc-300 animate-pulse rounded-lg" />
+                  ) : (
+                    <motion.span
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      {stats.absenSore.sudah}/{stats.totalUsers}
+                    </motion.span>
+                  )}
+                </div>
+                <Progress
+                  value={stats.absenSore.percentage}
+                  className="h-2 bg-violet-100/60 [&>div]:bg-linear-to-r [&>div]:from-violet-500 [&>div]:to-violet-600 rounded-full mb-3"
+                />
+                <p className="text-sm text-zinc-500 font-medium">
+                  <span className="text-violet-600 font-semibold">
+                    {stats.absenSore.percentage}%
+                  </span>{" "}
+                  Completion rate
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Recent Activity */}
+        <motion.div variants={item}>
+          <Card className="shadow-xl border-zinc-200/50 overflow-hidden bg-white/90 backdrop-blur-2xl">
+            <CardHeader className="border-b border-zinc-100/80 pb-6 bg-linear-to-br from-zinc-50/50 to-white">
+              <CardTitle className="text-2xl font-bold bg-linear-to-br from-zinc-900 to-zinc-700 bg-clip-text text-transparent flex items-center gap-3">
+                <Activity className="h-6 w-6 text-zinc-700" />
+                Recent Activity
+              </CardTitle>
+              <p className="text-sm text-zinc-500 mt-2 font-medium">Latest check-ins from users</p>
+            </CardHeader>
+            <CardContent className="p-6">
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-12 gap-4">
+                  <RefreshCw className="h-10 w-10 animate-spin text-blue-500" />
+                  <p className="text-sm text-zinc-500 font-medium">Loading activity...</p>
+                </div>
+              ) : users.length > 0 ? (
+                <div className="space-y-4">
+                  {users
+                    .filter((u) => u.last_checkin)
+                    .sort(
+                      (a, b) =>
+                        new Date(b.last_checkin!).getTime() - new Date(a.last_checkin!).getTime()
+                    )
+                    .slice(0, 5)
+                    .map((user, idx) => (
+                      <motion.div
+                        key={user.id || idx}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                        className="flex items-center justify-between p-4 rounded-xl bg-zinc-50/50 hover:bg-zinc-100/50 transition-colors border border-zinc-100"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <Users className="h-5 w-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-zinc-900 font-mono text-sm">
+                              {formatPhoneNumber(user.number)}
+                            </p>
+                            <p className="text-xs text-zinc-500">
+                              {user.last_checkin &&
+                                new Date(user.last_checkin).toLocaleString("id-ID")}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          {user.absen_pagi && (
+                            <Badge
+                              variant="outline"
+                              className="bg-emerald-50 text-emerald-700 border-emerald-300"
+                            >
+                              Morning
+                            </Badge>
+                          )}
+                          {user.absen_sore && (
+                            <Badge
+                              variant="outline"
+                              className="bg-violet-50 text-violet-700 border-violet-300"
+                            >
+                              Evening
+                            </Badge>
+                          )}
+                        </div>
+                      </motion.div>
+                    ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-zinc-500">
+                  <Activity className="mx-auto h-12 w-12 mb-4 text-zinc-300" />
+                  <p className="text-sm font-medium">No recent activity</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>
+    </motion.div>
+  );
 }
