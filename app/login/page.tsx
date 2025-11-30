@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { getSupabaseClient } from "@/lib/supabase";
+import { useSignIn } from "@/services/auth/mutation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,32 +19,19 @@ import { AlertCircle, Lock, Mail, ArrowRight, RefreshCw } from "lucide-react";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-  const supabase = getSupabaseClient();
+  const signInMutation = useSignIn();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
 
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        setError(error.message);
-      } else {
-        router.push("/");
+    signInMutation.mutate(
+      { email, password },
+      {
+        onError: (error) => {
+          console.error("Login error:", error);
+        },
       }
-    } catch {
-      setError("An unexpected error occurred");
-    } finally {
-      setLoading(false);
-    }
+    );
   };
 
   return (
@@ -104,7 +90,7 @@ export default function LoginPage() {
           </CardHeader>
           <form onSubmit={handleLogin}>
             <CardContent className="grid gap-6 px-8 py-6">
-              {error && (
+              {signInMutation.isError && (
                 <motion.div
                   initial={{ opacity: 0, height: 0, scale: 0.9 }}
                   animate={{ opacity: 1, height: "auto", scale: 1 }}
@@ -112,7 +98,9 @@ export default function LoginPage() {
                   className="flex items-center gap-3 text-sm text-red-700 bg-red-50 border border-red-200 p-4 rounded-xl shadow-sm"
                 >
                   <AlertCircle className="h-5 w-5 shrink-0" />
-                  <span className="font-medium">{error}</span>
+                  <span className="font-medium">
+                    {signInMutation.error?.message || "Login failed"}
+                  </span>
                 </motion.div>
               )}
               <motion.div
@@ -170,17 +158,17 @@ export default function LoginPage() {
                 <Button
                   className="w-full h-12 bg-linear-to-r from-zinc-800 to-zinc-900 hover:from-zinc-900 hover:to-zinc-950 text-white font-semibold text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
                   type="submit"
-                  disabled={loading}
+                  disabled={signInMutation.isPending}
                 >
                   <span className="relative z-10 flex items-center justify-center">
-                    {loading ? (
+                    {signInMutation.isPending ? (
                       <>
                         <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
-                        Logging in...
+                        Signing in...
                       </>
                     ) : (
                       <>
-                        Login
+                        Sign in
                         <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                       </>
                     )}

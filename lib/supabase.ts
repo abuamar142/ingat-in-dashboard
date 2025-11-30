@@ -18,6 +18,19 @@ export function getSupabaseClient(): SupabaseClient {
         eventsPerSecond: 10,
       },
     },
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+    global: {
+      headers: {
+        "x-client-info": "ingat-in-dashboard",
+      },
+    },
+    db: {
+      schema: "public",
+    },
   });
 
   return client;

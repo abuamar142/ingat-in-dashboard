@@ -1,20 +1,20 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import { motion, Variants, TargetAndTransition } from "framer-motion";
 import { RefreshCw, Users, CheckCircle, AlertTriangle, Activity } from "lucide-react";
 
-import { useRealtimeUsers } from "@/hooks/useRealtimeUsers";
+import { useUsers } from "@/services/users/query";
+import { RealtimeIndicator } from "@/components/realtime-indicator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Stats } from "@/lib/types";
+import { IStats } from "@/interfaces/stats";
 
 export default function Home() {
-  const { users, loading, error } = useRealtimeUsers();
-  const [lastUpdate, setLastUpdate] = useState("");
+  const { data: users = [], isLoading: loading, error } = useUsers();
 
-  const stats: Stats = useMemo(() => {
+  const stats: IStats = useMemo(() => {
     if (users.length === 0) {
       return {
         totalUsers: 0,
@@ -41,23 +41,6 @@ export default function Home() {
       },
     };
   }, [users]);
-
-  // Update timestamp every second
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      const timeString = now.toLocaleTimeString("id-ID", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      });
-      setLastUpdate(timeString);
-    };
-
-    updateTime(); // Initial call
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   const pageTransition: Variants = {
     hidden: { opacity: 0 },
@@ -116,22 +99,7 @@ export default function Home() {
               Real-time monitoring of WhatsApp Bot attendance system
             </p>
           </div>
-          <div className="flex items-center gap-2 text-sm text-zinc-500 bg-white/70 px-4 py-2 rounded-xl border border-zinc-200/60 backdrop-blur-sm shadow-sm">
-            <span className={`relative flex h-2.5 w-2.5`}>
-              <span
-                className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                  error ? "bg-red-500" : "bg-emerald-500"
-                }`}
-              ></span>
-              <span
-                className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                  error ? "bg-red-500" : "bg-emerald-500"
-                }`}
-              ></span>
-            </span>
-            <Activity className="h-4 w-4 text-zinc-400" />
-            <span className="font-medium">{lastUpdate}</span>
-          </div>
+          <RealtimeIndicator />
         </div>
       </div>
 
@@ -146,7 +114,7 @@ export default function Home() {
               <AlertTriangle className="h-5 w-5" />
               <div>
                 <p className="font-medium">Gagal memuat data</p>
-                <p className="text-sm">{error}</p>
+                <p className="text-sm">{error?.message || "Unknown error"}</p>
               </div>
             </CardContent>
           </Card>

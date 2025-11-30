@@ -1,11 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { RefreshCw, Users, CheckCircle, XCircle, Search, Edit, Trash2 } from "lucide-react";
+import { RefreshCw, Users, CheckCircle, XCircle, Search, Edit, Trash2, Plus } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { useRealtimeUsers } from "@/hooks/useRealtimeUsers";
+import { useUsers } from "@/services/users/query";
+import { useDeleteUser } from "@/services/users/mutation";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -28,15 +30,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { supabase } from "@/lib/supabase";
-import { User } from "@/lib/types";
+import { IUser } from "@/interfaces/users";
 
 export default function UsersPage() {
-  const { users, loading } = useRealtimeUsers();
+  const { data: users = [], isLoading: loading } = useUsers();
   const [searchQuery, setSearchQuery] = useState("");
+
+  const deleteUserMutation = useDeleteUser();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<IUser | null>(null);
+
   const router = useRouter();
 
   const formatPhoneNumber = (number: string) =>
@@ -46,7 +49,7 @@ export default function UsersPage() {
     formatPhoneNumber(user.number).toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleDeleteClick = (user: User) => {
+  const handleDeleteClick = (user: IUser) => {
     setUserToDelete(user);
     setDeleteDialogOpen(true);
   };
@@ -54,23 +57,17 @@ export default function UsersPage() {
   const handleDeleteConfirm = async () => {
     if (!userToDelete?.id) return;
 
-    setIsDeleting(true);
     try {
-      const { error } = await supabase.from("users").delete().eq("id", userToDelete.id);
-
-      if (error) throw error;
-
+      await deleteUserMutation.mutateAsync(userToDelete.id);
       setDeleteDialogOpen(false);
       setUserToDelete(null);
     } catch (error) {
       console.error("Error deleting user:", error);
       alert("Failed to delete user. Please try again.");
-    } finally {
-      setIsDeleting(false);
     }
   };
 
-  const handleEditClick = (user: User) => {
+  const handleEditClick = (user: IUser) => {
     router.push(`/users/${user.id}/edit`);
   };
 
@@ -171,6 +168,13 @@ export default function UsersPage() {
                 className="pl-10 w-64 border-zinc-300 focus:border-blue-500"
               />
             </div>
+            <Button
+              onClick={() => router.push("/users/create")}
+              className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add User
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -360,17 +364,17 @@ export default function UsersPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel
-              disabled={isDeleting}
+              disabled={deleteUserMutation.isPending}
               className="font-semibold hover:bg-zinc-50 border-zinc-200"
             >
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
-              disabled={isDeleting}
+              disabled={deleteUserMutation.isPending}
               className="bg-red-600 hover:bg-red-700 text-white font-semibold shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/40"
             >
-              {isDeleting ? (
+              {deleteUserMutation.isPending ? (
                 <>
                   <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                   Deleting...

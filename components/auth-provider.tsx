@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Redirect logic
+        // Redirect logic after checking session
         if (!session && pathname !== "/login") {
           router.push("/login");
         } else if (session && pathname === "/login") {
@@ -45,6 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       setUser(session?.user ?? null);
 
+      // Redirect on auth change
       if (!session && pathname !== "/login") {
         router.push("/login");
       } else if (session && pathname === "/login") {
@@ -55,12 +56,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, [router, pathname]);
 
-  const signOut = async () => {
+  const handleSignOut = async () => {
     await supabase.auth.signOut();
     router.push("/login");
   };
 
-  return <AuthContext.Provider value={{ user, loading, signOut }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, loading, signOut: handleSignOut }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export const useAuth = () => {

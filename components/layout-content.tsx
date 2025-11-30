@@ -6,7 +6,7 @@ import { useAuth } from "@/components/auth-provider";
 
 export function LayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { loading, user } = useAuth();
+  const { loading } = useAuth();
   const isLoginPage = pathname === "/login";
 
   // Show loading spinner while checking auth
@@ -21,14 +21,6 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
   // Render login page without sidebar
   if (isLoginPage) {
     return <>{children}</>;
-  }
-
-  if (!user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
   }
 
   return (

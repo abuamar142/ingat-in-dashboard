@@ -1,70 +1,63 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, RefreshCw, Save, User as UserIcon } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, UserPlus, Save } from "lucide-react";
 
+import { useCreateUser } from "@/services/users/mutation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-import { useUser } from "@/services/users/query";
-import { useUpdateUser } from "@/services/users/mutation";
-
-export default function EditUserPage() {
+export default function CreateUserPage() {
   const router = useRouter();
-  const params = useParams();
-  const userId = params.id as string;
+  const createUserMutation = useCreateUser();
 
-  const { data: user, isLoading: loading } = useUser(userId);
-  const updateUserMutation = useUpdateUser();
-
-  type FormData = {
-    number: string;
-    absen_pagi: boolean;
-    absen_sore: boolean;
-  };
-
-  // Initialize form data from user, re-compute when user changes
-  const initialFormData = useMemo(
-    () => ({
-      number: user?.number.replace("@s.whatsapp.net", "") || "",
-      absen_pagi: user?.absen_pagi || false,
-      absen_sore: user?.absen_sore || false,
-    }),
-    [user]
-  );
-
-  const [formData, setFormData] = useState<FormData>(initialFormData);
-
-  // Sync formData when initialFormData changes
-  useEffect(() => {
-    setFormData(initialFormData);
-  }, [initialFormData]);
+  const [formData, setFormData] = useState({
+    number: "",
+    absen_pagi: false,
+    absen_sore: false,
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate phone number
+    if (!formData.number) {
+      alert("Please enter a phone number");
+      return;
+    }
+
+    // Format number to include WhatsApp format
+    let formattedNumber = formData.number;
+
+    // Remove leading 0 and add 62 if not present
+    if (formattedNumber.startsWith("0")) {
+      formattedNumber = "62" + formattedNumber.substring(1);
+    } else if (!formattedNumber.startsWith("62")) {
+      formattedNumber = "62" + formattedNumber;
+    }
+
+    // Add WhatsApp suffix if not present
+    if (!formattedNumber.includes("@s.whatsapp.net")) {
+      formattedNumber += "@s.whatsapp.net";
+    }
+
     try {
-      await updateUserMutation.mutateAsync({
-        id: userId,
-        updates: {
-          number: formData.number.includes("@s.whatsapp.net")
-            ? formData.number
-            : `${formData.number}@s.whatsapp.net`,
-          absen_pagi: formData.absen_pagi,
-          absen_sore: formData.absen_sore,
-        },
+      await createUserMutation.mutateAsync({
+        number: formattedNumber,
+        absen_pagi: formData.absen_pagi,
+        absen_sore: formData.absen_sore,
       });
 
-      alert("User updated successfully!");
+      alert("User created successfully!");
       router.push("/users");
     } catch (error) {
-      console.error("Error updating user:", error);
-      alert("Failed to update user. Please try again.");
+      console.error("Error creating user:", error);
+      alert("Failed to create user. Please try again.");
     }
   };
 
@@ -75,31 +68,6 @@ export default function EditUserPage() {
   const toggleAbsenSore = () => {
     setFormData((prev) => ({ ...prev, absen_sore: !prev.absen_sore }));
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="flex flex-col items-center gap-4">
-          <RefreshCw className="h-10 w-10 animate-spin text-blue-500" />
-          <p className="text-sm text-zinc-500 font-medium">Loading user data...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-zinc-900 mb-2">User not found</h2>
-          <Button onClick={() => router.push("/users")} variant="outline">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Users
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <motion.div
@@ -117,17 +85,17 @@ export default function EditUserPage() {
 
         <div>
           <h1 className="text-4xl font-bold tracking-tight bg-linear-to-br from-zinc-900 via-zinc-800 to-zinc-700 bg-clip-text text-transparent mb-2">
-            Edit User
+            Create New User
           </h1>
-          <p className="text-lg text-zinc-600">Update user information and check-in status</p>
+          <p className="text-lg text-zinc-600">Add a new user to the system</p>
         </div>
       </div>
 
-      {/* Edit Form */}
+      {/* Create Form */}
       <Card className="shadow-xl border-zinc-200/50 overflow-hidden bg-white/90 backdrop-blur-2xl">
         <CardHeader className="border-b border-zinc-100/80 bg-linear-to-br from-zinc-50/50 to-white">
           <CardTitle className="text-2xl font-bold bg-linear-to-br from-zinc-900 to-zinc-700 bg-clip-text text-transparent flex items-center gap-3">
-            <UserIcon className="h-6 w-6 text-zinc-700" />
+            <UserPlus className="h-6 w-6 text-zinc-700" />
             User Information
           </CardTitle>
         </CardHeader>
@@ -136,19 +104,19 @@ export default function EditUserPage() {
             {/* WhatsApp Number */}
             <div className="space-y-3">
               <Label htmlFor="number" className="text-sm font-semibold text-zinc-700">
-                WhatsApp Number
+                WhatsApp Number <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="number"
                 type="text"
                 value={formData.number}
                 onChange={(e) => setFormData((prev) => ({ ...prev, number: e.target.value }))}
-                placeholder="628123456789"
+                placeholder="08123456789 or 628123456789"
                 className="font-mono border-zinc-300 focus:border-blue-500"
                 required
               />
               <p className="text-xs text-zinc-500">
-                Enter the phone number without @s.whatsapp.net
+                Enter phone number (with or without country code)
               </p>
             </div>
 
@@ -209,51 +177,31 @@ export default function EditUserPage() {
               </div>
             </div>
 
-            {/* User Metadata */}
-            {user.created_at && (
-              <div className="space-y-2 p-4 bg-zinc-50 rounded-lg border border-zinc-200">
-                <div className="flex justify-between text-sm">
-                  <span className="text-zinc-600 font-medium">Created At:</span>
-                  <span className="text-zinc-900 font-semibold">
-                    {new Date(user.created_at).toLocaleString("id-ID")}
-                  </span>
-                </div>
-                {user.last_checkin && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-zinc-600 font-medium">Last Check-in:</span>
-                    <span className="text-zinc-900 font-semibold">
-                      {new Date(user.last_checkin).toLocaleString("id-ID")}
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => router.push("/users")}
-                disabled={updateUserMutation.isPending}
+                disabled={createUserMutation.isPending}
                 className="flex-1 font-semibold"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={updateUserMutation.isPending}
+                disabled={createUserMutation.isPending}
                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40"
               >
-                {updateUserMutation.isPending ? (
+                {createUserMutation.isPending ? (
                   <>
-                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
+                    <UserPlus className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
                   </>
                 ) : (
                   <>
                     <Save className="mr-2 h-4 w-4" />
-                    Save Changes
+                    Create User
                   </>
                 )}
               </Button>
