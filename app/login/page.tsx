@@ -113,12 +113,12 @@ export default function LoginPage() {
                   Email Address
                 </Label>
                 <div className="relative group">
-                  <Mail className="absolute left-4 top-3.5 h-5 w-5 text-zinc-500 group-focus-within:text-blue-600 transition-colors" />
+                  <Mail className="absolute left-4 top-3.5 h-5 w-5 text-zinc-600 group-focus-within:text-blue-600 transition-colors z-10 pointer-events-none" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="Enter your email"
-                    className="pl-12 h-12 border-zinc-300 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 rounded-xl text-base font-medium bg-white/50 backdrop-blur-sm"
+                    className="pl-12 h-12 border-zinc-300 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 rounded-xl text-base font-medium bg-white relative"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -135,12 +135,12 @@ export default function LoginPage() {
                   Password
                 </Label>
                 <div className="relative group">
-                  <Lock className="absolute left-4 top-3.5 h-5 w-5 text-zinc-500 group-focus-within:text-blue-600 transition-colors" />
+                  <Lock className="absolute left-4 top-3.5 h-5 w-5 text-zinc-600 group-focus-within:text-blue-600 transition-colors z-10 pointer-events-none" />
                   <Input
                     id="password"
                     type="password"
                     placeholder="Enter your password"
-                    className="pl-12 h-12 border-zinc-300 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 rounded-xl text-base font-medium bg-white/50 backdrop-blur-sm"
+                    className="pl-12 h-12 border-zinc-300 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 rounded-xl text-base font-medium bg-white relative"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
