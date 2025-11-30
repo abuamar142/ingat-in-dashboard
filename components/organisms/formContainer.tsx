@@ -12,7 +12,10 @@ interface FormContainerProps {
   icon: LucideIcon;
   backUrl: string;
   children: ReactNode;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit?: (e: React.FormEvent) => void;
+  isEmpty?: boolean;
+  emptyMessage?: string;
+  emptyDescription?: string;
 }
 
 export function FormContainer({
@@ -22,6 +25,9 @@ export function FormContainer({
   backUrl,
   children,
   onSubmit,
+  isEmpty = false,
+  emptyMessage = "Not found",
+  emptyDescription,
 }: FormContainerProps) {
   const router = useRouter();
 
@@ -47,20 +53,38 @@ export function FormContainer({
         </div>
       </div>
 
-      {/* Form Card */}
-      <Card className="shadow-xl border-zinc-200/50 overflow-hidden bg-white/90 backdrop-blur-2xl">
-        <CardHeader className="border-b border-zinc-100/80 bg-linear-to-br from-zinc-50/50 to-white">
-          <CardTitle className="text-2xl font-bold bg-linear-to-br from-zinc-900 to-zinc-700 bg-clip-text text-transparent flex items-center gap-3">
-            <Icon className="h-6 w-6 text-zinc-700" />
-            User Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-8">
-          <form onSubmit={onSubmit} className="space-y-8">
-            {children}
-          </form>
-        </CardContent>
-      </Card>
+      {/* Empty State or Form Card */}
+      {isEmpty ? (
+        <Card className="shadow-xl border-zinc-200/50 overflow-hidden bg-white/90 backdrop-blur-2xl">
+          <CardContent className="p-12">
+            <div className="flex flex-col items-center justify-center text-center space-y-4">
+              <div className="p-4 rounded-full bg-zinc-100">
+                <Icon className="h-8 w-8 text-zinc-400" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold text-zinc-900">{emptyMessage}</h3>
+                {emptyDescription && (
+                  <p className="text-sm text-zinc-500 max-w-sm">{emptyDescription}</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="shadow-xl border-zinc-200/50 overflow-hidden bg-white/90 backdrop-blur-2xl">
+          <CardHeader className="border-b border-zinc-100/80 bg-linear-to-br from-zinc-50/50 to-white">
+            <CardTitle className="text-2xl font-bold bg-linear-to-br from-zinc-900 to-zinc-700 bg-clip-text text-transparent flex items-center gap-3">
+              <Icon className="h-6 w-6 text-zinc-700" />
+              User Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-8">
+            <form onSubmit={onSubmit} className="space-y-8">
+              {children}
+            </form>
+          </CardContent>
+        </Card>
+      )}
     </motion.div>
   );
 }

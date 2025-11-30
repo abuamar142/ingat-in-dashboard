@@ -70,16 +70,6 @@ export default function EditUserPage() {
     return <LoadingState message="Loading user data..." />;
   }
 
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-zinc-900 mb-2">User not found</h2>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <FormContainer
       title="Edit User"
@@ -87,54 +77,61 @@ export default function EditUserPage() {
       icon={UserCog}
       backUrl="/users"
       onSubmit={handleSubmit}
+      isEmpty={!user}
+      emptyMessage="User not found"
+      emptyDescription="The user you're looking for doesn't exist or has been deleted."
     >
-      <FormInput
-        id="number"
-        label="WhatsApp Number"
-        type="text"
-        placeholder="628123456789"
-        value={formData.number}
-        onChange={(value) => setFormData((prev) => ({ ...prev, number: value }))}
-        required
-        helpText="Enter the phone number without @s.whatsapp.net"
-        className="font-mono"
-      />
+      {user && (
+        <>
+          <FormInput
+            id="number"
+            label="WhatsApp Number"
+            type="text"
+            placeholder="628123456789"
+            value={formData.number}
+            onChange={(value) => setFormData((prev) => ({ ...prev, number: value }))}
+            required
+            helpText="Enter the phone number without @s.whatsapp.net"
+            className="font-mono"
+          />
 
-      <CheckInStatusSection
-        absenPagi={formData.absen_pagi}
-        absenSore={formData.absen_sore}
-        onTogglePagi={() => setFormData((prev) => ({ ...prev, absen_pagi: !prev.absen_pagi }))}
-        onToggleSore={() => setFormData((prev) => ({ ...prev, absen_sore: !prev.absen_sore }))}
-      />
+          <CheckInStatusSection
+            absenPagi={formData.absen_pagi}
+            absenSore={formData.absen_sore}
+            onTogglePagi={() => setFormData((prev) => ({ ...prev, absen_pagi: !prev.absen_pagi }))}
+            onToggleSore={() => setFormData((prev) => ({ ...prev, absen_sore: !prev.absen_sore }))}
+          />
 
-      {/* User Metadata */}
-      {user.created_at && (
-        <div className="space-y-2 p-4 bg-zinc-50 rounded-lg border border-zinc-200">
-          <div className="flex justify-between text-sm">
-            <span className="text-zinc-600 font-medium">Created At:</span>
-            <span className="text-zinc-900 font-semibold">
-              {new Date(user.created_at).toLocaleString("id-ID")}
-            </span>
-          </div>
-          {user.last_checkin && (
-            <div className="flex justify-between text-sm">
-              <span className="text-zinc-600 font-medium">Last Check-in:</span>
-              <span className="text-zinc-900 font-semibold">
-                {new Date(user.last_checkin).toLocaleString("id-ID")}
-              </span>
+          {/* User Metadata */}
+          {user.created_at && (
+            <div className="space-y-2 p-4 bg-zinc-50 rounded-lg border border-zinc-200">
+              <div className="flex justify-between text-sm">
+                <span className="text-zinc-600 font-medium">Created At:</span>
+                <span className="text-zinc-900 font-semibold">
+                  {new Date(user.created_at).toLocaleString("id-ID")}
+                </span>
+              </div>
+              {user.last_checkin && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-zinc-600 font-medium">Last Check-in:</span>
+                  <span className="text-zinc-900 font-semibold">
+                    {new Date(user.last_checkin).toLocaleString("id-ID")}
+                  </span>
+                </div>
+              )}
             </div>
           )}
-        </div>
-      )}
 
-      <FormActions
-        onCancel={() => router.push("/users")}
-        submitLabel="Save Changes"
-        submitIcon={Save}
-        isLoading={updateUserMutation.isPending}
-        loadingLabel="Saving..."
-        cancelDisabled={updateUserMutation.isPending}
-      />
+          <FormActions
+            onCancel={() => router.push("/users")}
+            submitLabel="Save Changes"
+            submitIcon={Save}
+            isLoading={updateUserMutation.isPending}
+            loadingLabel="Saving..."
+            cancelDisabled={updateUserMutation.isPending}
+          />
+        </>
+      )}
     </FormContainer>
   );
 }
