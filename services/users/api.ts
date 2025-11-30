@@ -52,3 +52,23 @@ export async function postCreateUser(
   if (error) throw error;
   return data as IUser;
 }
+
+// Reset morning attendance for all users
+export async function resetMorningAttendance(): Promise<void> {
+  const { error } = await supabase
+    .from("users")
+    .update({ absen_pagi: false, updated_at: new Date().toISOString() })
+    .neq("id", "00000000-0000-0000-0000-000000000000"); // Update all rows
+
+  if (error) throw error;
+}
+
+// Reset evening attendance for all users
+export async function resetEveningAttendance(): Promise<void> {
+  const { error } = await supabase
+    .from("users")
+    .update({ absen_sore: false, updated_at: new Date().toISOString() })
+    .neq("id", "00000000-0000-0000-0000-000000000000"); // Update all rows
+
+  if (error) throw error;
+}

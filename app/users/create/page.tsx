@@ -18,8 +18,10 @@ export default function CreateUserPage() {
 
   const [formData, setFormData] = useState({
     number: "",
+    name: "",
     absen_pagi: false,
     absen_sore: false,
+    suspend_until: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,8 +48,10 @@ export default function CreateUserPage() {
     try {
       await createUserMutation.mutateAsync({
         number: formattedNumber,
+        name: formData.name || null,
         absen_pagi: formData.absen_pagi,
         absen_sore: formData.absen_sore,
+        suspend_until: formData.suspend_until || null,
       });
 
       toast.success("User created successfully!");
@@ -78,11 +82,31 @@ export default function CreateUserPage() {
         className="font-mono"
       />
 
+      <FormInput
+        id="name"
+        label="Name"
+        type="text"
+        placeholder="Enter user name (optional)"
+        value={formData.name}
+        onChange={(value) => setFormData((prev) => ({ ...prev, name: value }))}
+        helpText="Optional: User's display name"
+      />
+
       <CheckInStatusSection
         absenPagi={formData.absen_pagi}
         absenSore={formData.absen_sore}
         onTogglePagi={() => setFormData((prev) => ({ ...prev, absen_pagi: !prev.absen_pagi }))}
         onToggleSore={() => setFormData((prev) => ({ ...prev, absen_sore: !prev.absen_sore }))}
+      />
+
+      <FormInput
+        id="suspend_until"
+        label="Suspend Until"
+        type="datetime-local"
+        placeholder="Select suspension end date"
+        value={formData.suspend_until}
+        onChange={(value) => setFormData((prev) => ({ ...prev, suspend_until: value }))}
+        helpText="Optional: Suspend user until this date and time"
       />
 
       <FormActions

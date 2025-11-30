@@ -6,11 +6,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { logger } from "@/utils/logger";
+import { formatDate, formatTime } from "@/utils/date";
 
 import { useUsers } from "@/services/users/query";
 import { useDeleteUser } from "@/services/users/mutation";
 import { PageHeader } from "@/components/atoms/pageHeader";
 import { LoadingState } from "@/components/atoms/loadingState";
+import { ConfirmDialog } from "@/components/molecules/confirmDialog";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,16 +26,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { IUser } from "@/interfaces/users";
 import { StatCard } from "@/components/molecules/statCard";
 
@@ -159,6 +151,9 @@ export default function UsersPage() {
                     <TableHead className="font-bold text-zinc-700 text-xs uppercase tracking-wider py-4 min-w-[180px]">
                       WhatsApp Number
                     </TableHead>
+                    <TableHead className="font-bold text-zinc-700 text-xs uppercase tracking-wider py-4 min-w-[150px]">
+                      Name
+                    </TableHead>
                     <TableHead className="font-bold text-zinc-700 text-xs uppercase tracking-wider py-4 text-center min-w-[150px]">
                       Morning Check-in
                     </TableHead>
@@ -167,6 +162,9 @@ export default function UsersPage() {
                     </TableHead>
                     <TableHead className="font-bold text-zinc-700 text-xs uppercase tracking-wider py-4 min-w-[180px]">
                       Last Activity
+                    </TableHead>
+                    <TableHead className="font-bold text-zinc-700 text-xs uppercase tracking-wider py-4 min-w-[150px]">
+                      Suspend Until
                     </TableHead>
                     <TableHead className="font-bold text-zinc-700 text-xs uppercase tracking-wider py-4 text-center min-w-[120px]">
                       Actions
@@ -196,6 +194,11 @@ export default function UsersPage() {
                             {formatPhoneNumber(user.number)}
                           </span>
                         </div>
+                      </TableCell>
+                      <TableCell className="text-zinc-700 py-5">
+                        <span className="font-medium">
+                          {user.name || <span className="text-zinc-400 italic">No name</span>}
+                        </span>
                       </TableCell>
                       <TableCell className="py-5">
                         <div className="flex justify-center">
@@ -249,21 +252,31 @@ export default function UsersPage() {
                         {user.last_checkin ? (
                           <div className="flex flex-col gap-0.5">
                             <span className="text-zinc-800 font-semibold">
-                              {new Date(user.last_checkin).toLocaleDateString("id-ID", {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                              })}
+                              {formatDate(user.last_checkin)}
                             </span>
                             <span className="text-zinc-500 text-xs">
-                              {new Date(user.last_checkin).toLocaleTimeString("id-ID", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
+                              {formatTime(user.last_checkin)}
                             </span>
                           </div>
                         ) : (
                           <span className="text-zinc-400 italic">No activity</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-zinc-600 text-sm font-medium py-5">
+                        {user.suspend_until ? (
+                          <div className="flex flex-col gap-0.5">
+                            <Badge
+                              variant="outline"
+                              className="bg-amber-50 text-amber-700 border-amber-300 font-semibold text-xs px-3 py-1 rounded-full w-fit"
+                            >
+                              Suspended
+                            </Badge>
+                            <span className="text-zinc-800 font-semibold text-xs mt-1">
+                              {formatDate(user.suspend_until)}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-zinc-400 italic">Active</span>
                         )}
                       </TableCell>
                       <TableCell className="py-5">
@@ -276,14 +289,40 @@ export default function UsersPage() {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDeleteClick(user)}
-                            className="hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-all"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <ConfirmDialog
+                            trigger={
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-all"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            }
+                            open={deleteDialogOpen && userToDelete?.id === user.id}
+                            onOpenChange={(open) => {
+                              setDeleteDialogOpen(open);
+                              if (!open) setUserToDelete(null);
+                            }}
+                            title="Delete User Confirmation"
+                            description={
+                              <>
+                                Are you sure you want to delete user{" "}
+                                <span className="font-mono font-semibold text-zinc-900">
+                                  {formatPhoneNumber(user.number)}
+                                </span>
+                                ? This action cannot be undone.
+                              </>
+                            }
+                            confirmLabel="Delete"
+                            onConfirm={() => {
+                              handleDeleteClick(user);
+                              handleDeleteConfirm();
+                            }}
+                            isLoading={deleteUserMutation.isPending}
+                            loadingLabel="Deleting..."
+                            variant="danger"
+                          />
                         </div>
                       </TableCell>
                     </motion.tr>
@@ -311,46 +350,6 @@ export default function UsersPage() {
           )}
         </CardContent>
       </Card>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-white/95 backdrop-blur-xl border-zinc-200 shadow-2xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl font-bold text-zinc-900">
-              Delete User Confirmation
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-zinc-600">
-              Are you sure you want to delete user{" "}
-              <span className="font-mono font-semibold text-zinc-900">
-                {userToDelete ? formatPhoneNumber(userToDelete.number) : ""}
-              </span>
-              ? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              disabled={deleteUserMutation.isPending}
-              className="font-semibold hover:bg-zinc-50 border-zinc-200"
-            >
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteConfirm}
-              disabled={deleteUserMutation.isPending}
-              className="bg-red-600 hover:bg-red-700 text-white font-semibold shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/40"
-            >
-              {deleteUserMutation.isPending ? (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                "Delete"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </motion.div>
   );
 }

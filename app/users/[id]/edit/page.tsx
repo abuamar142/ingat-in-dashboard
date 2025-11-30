@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { Save, UserCog } from "lucide-react";
 import { toast } from "sonner";
 import { logger } from "@/utils/logger";
+import { formatFullDateTime } from "@/utils/date";
 
 import { useUser } from "@/services/users/query";
 import { useUpdateUser } from "@/services/users/mutation";
@@ -24,16 +25,22 @@ export default function EditUserPage() {
 
   type FormData = {
     number: string;
+    name: string;
     absen_pagi: boolean;
     absen_sore: boolean;
+    suspend_until: string;
   };
 
   // Initialize form data from user, re-compute when user changes
   const initialFormData = useMemo(
     () => ({
       number: user?.number.replace("@s.whatsapp.net", "") || "",
+      name: user?.name || "",
       absen_pagi: user?.absen_pagi || false,
       absen_sore: user?.absen_sore || false,
+      suspend_until: user?.suspend_until 
+        ? new Date(user.suspend_until).toISOString().slice(0, 16)
+        : "",
     }),
     [user]
   );
@@ -55,8 +62,10 @@ export default function EditUserPage() {
           number: formData.number.includes("@s.whatsapp.net")
             ? formData.number
             : `${formData.number}@s.whatsapp.net`,
+          name: formData.name || null,
           absen_pagi: formData.absen_pagi,
           absen_sore: formData.absen_sore,
+          suspend_until: formData.suspend_until || null,
         },
       });
 
@@ -97,11 +106,31 @@ export default function EditUserPage() {
             className="font-mono"
           />
 
+          <FormInput
+            id="name"
+            label="Name"
+            type="text"
+            placeholder="Enter user name (optional)"
+            value={formData.name}
+            onChange={(value) => setFormData((prev) => ({ ...prev, name: value }))}
+            helpText="Optional: User's display name"
+          />
+
           <CheckInStatusSection
             absenPagi={formData.absen_pagi}
             absenSore={formData.absen_sore}
             onTogglePagi={() => setFormData((prev) => ({ ...prev, absen_pagi: !prev.absen_pagi }))}
             onToggleSore={() => setFormData((prev) => ({ ...prev, absen_sore: !prev.absen_sore }))}
+          />
+
+          <FormInput
+            id="suspend_until"
+            label="Suspend Until"
+            type="datetime-local"
+            placeholder="Select suspension end date"
+            value={formData.suspend_until}
+            onChange={(value) => setFormData((prev) => ({ ...prev, suspend_until: value }))}
+            helpText="Optional: Suspend user until this date and time"
           />
 
           {/* User Metadata */}
@@ -110,14 +139,14 @@ export default function EditUserPage() {
               <div className="flex justify-between text-sm">
                 <span className="text-zinc-600 font-medium">Created At:</span>
                 <span className="text-zinc-900 font-semibold">
-                  {new Date(user.created_at).toLocaleString("id-ID")}
+                  {formatFullDateTime(user.created_at)}
                 </span>
               </div>
               {user.last_checkin && (
                 <div className="flex justify-between text-sm">
                   <span className="text-zinc-600 font-medium">Last Check-in:</span>
                   <span className="text-zinc-900 font-semibold">
-                    {new Date(user.last_checkin).toLocaleString("id-ID")}
+                    {formatFullDateTime(user.last_checkin)}
                   </span>
                 </div>
               )}

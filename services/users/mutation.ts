@@ -1,7 +1,13 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateUser, deleteUser, postCreateUser } from "./api";
+import {
+  updateUser,
+  deleteUser,
+  postCreateUser,
+  resetMorningAttendance,
+  resetEveningAttendance,
+} from "./api";
 import { IUser } from "@/interfaces/users";
 
 // Update user mutation
@@ -89,6 +95,32 @@ export function useCreateUser() {
 
   return useMutation({
     mutationFn: (user: Omit<IUser, "id" | "created_at" | "updated_at">) => postCreateUser(user),
+    onSuccess: () => {
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+  });
+}
+
+// Reset morning attendance mutation
+export function useResetMorningAttendance() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: resetMorningAttendance,
+    onSuccess: () => {
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+  });
+}
+
+// Reset evening attendance mutation
+export function useResetEveningAttendance() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: resetEveningAttendance,
     onSuccess: () => {
       // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ["users"] });
