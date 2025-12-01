@@ -92,6 +92,7 @@ export function SideBar() {
                   src="/logo.webp"
                   alt="Ingat-In Logo"
                   fill
+                  sizes="48px"
                   className="object-cover"
                   priority
                 />

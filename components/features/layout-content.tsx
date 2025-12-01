@@ -24,6 +24,7 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
                 src="/logo.webp"
                 alt="Ingat-in Logo"
                 fill
+                sizes="96px"
                 className="object-cover"
                 priority
               />
