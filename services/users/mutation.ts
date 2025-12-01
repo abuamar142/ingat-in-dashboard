@@ -4,13 +4,22 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   updateUser,
   deleteUser,
-  postCreateUser,
+  createUser,
   resetMorningAttendance,
   resetEveningAttendance,
 } from "./api";
 import { IUser } from "@/interfaces/users";
+import { USER_QUERY_KEYS } from "@/constants";
 
-// Update user mutation
+/**
+ * User mutation hooks
+ */
+
+// Helper: Invalidate all user queries
+const invalidateUserQueries = (queryClient: ReturnType<typeof useQueryClient>) => {
+  queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.ROOT });
+};
+
 export function useUpdateUser() {
   const queryClient = useQueryClient();
 
@@ -18,112 +27,87 @@ export function useUpdateUser() {
     mutationFn: ({ id, updates }: { id: string; updates: Partial<IUser> }) =>
       updateUser(id, updates),
     onMutate: async ({ id, updates }) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ["users", id] });
-      await queryClient.cancelQueries({ queryKey: ["users"] });
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: USER_QUERY_KEYS.DETAIL(id) });
+      await queryClient.cancelQueries({ queryKey: USER_QUERY_KEYS.ROOT });
 
-      // Snapshot the previous value
-      const previousUser = queryClient.getQueryData(["users", id]);
-      const previousUsers = queryClient.getQueryData<IUser[]>(["users"]);
+      // Snapshot previous values
+      const previousUser = queryClient.getQueryData(USER_QUERY_KEYS.DETAIL(id));
+      const previousUsers = queryClient.getQueryData<IUser[]>(USER_QUERY_KEYS.ROOT);
 
-      // Optimistically update to the new value
-      queryClient.setQueryData(["users", id], (old: IUser | undefined) => {
-        if (!old) return old;
-        return { ...old, ...updates };
-      });
+      // Optimistic update
+      queryClient.setQueryData(USER_QUERY_KEYS.DETAIL(id), (old: IUser | undefined) =>
+        old ? { ...old, ...updates } : old
+      );
 
-      queryClient.setQueryData<IUser[]>(["users"], (old) => {
-        if (!old) return old;
-        return old.map((user) => (user.id === id ? { ...user, ...updates } : user));
-      });
+      queryClient.setQueryData<IUser[]>(USER_QUERY_KEYS.ROOT, (old) =>
+        old ? old.map((user) => (user.id === id ? { ...user, ...updates } : user)) : old
+      );
 
       return { previousUser, previousUsers };
     },
     onError: (err, { id }, context) => {
       // Rollback on error
       if (context?.previousUser) {
-        queryClient.setQueryData(["users", id], context.previousUser);
+        queryClient.setQueryData(USER_QUERY_KEYS.DETAIL(id), context.previousUser);
       }
       if (context?.previousUsers) {
-        queryClient.setQueryData(["users"], context.previousUsers);
+        queryClient.setQueryData(USER_QUERY_KEYS.ROOT, context.previousUsers);
       }
     },
-    onSettled: () => {
-      // Refetch after mutation
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-    },
+    onSettled: () => invalidateUserQueries(queryClient),
   });
 }
 
-// Delete user mutation
 export function useDeleteUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: string) => deleteUser(id),
     onMutate: async (id) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ["users"] });
+      await queryClient.cancelQueries({ queryKey: USER_QUERY_KEYS.ROOT });
 
-      // Snapshot the previous value
-      const previousUsers = queryClient.getQueryData<IUser[]>(["users"]);
+      const previousUsers = queryClient.getQueryData<IUser[]>(USER_QUERY_KEYS.ROOT);
 
-      // Optimistically update to the new value
-      queryClient.setQueryData<IUser[]>(["users"], (old) => {
-        if (!old) return old;
-        return old.filter((user) => user.id !== id);
-      });
+      // Optimistic update
+      queryClient.setQueryData<IUser[]>(USER_QUERY_KEYS.ROOT, (old) =>
+        old ? old.filter((user) => user.id !== id) : old
+      );
 
       return { previousUsers };
     },
     onError: (err, id, context) => {
-      // Rollback on error
       if (context?.previousUsers) {
-        queryClient.setQueryData(["users"], context.previousUsers);
+        queryClient.setQueryData(USER_QUERY_KEYS.ROOT, context.previousUsers);
       }
     },
-    onSettled: () => {
-      // Refetch after mutation
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-    },
+    onSettled: () => invalidateUserQueries(queryClient),
   });
 }
 
-// Create user mutation
 export function useCreateUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (user: Omit<IUser, "id" | "created_at" | "updated_at">) => postCreateUser(user),
-    onSuccess: () => {
-      // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-    },
+    mutationFn: (user: Omit<IUser, "id" | "created_at" | "updated_at">) => createUser(user),
+    onSuccess: () => invalidateUserQueries(queryClient),
   });
 }
 
-// Reset morning attendance mutation
 export function useResetMorningAttendance() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: resetMorningAttendance,
-    onSuccess: () => {
-      // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-    },
+    onSuccess: () => invalidateUserQueries(queryClient),
   });
 }
 
-// Reset evening attendance mutation
 export function useResetEveningAttendance() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: resetEveningAttendance,
-    onSuccess: () => {
-      // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-    },
+    onSuccess: () => invalidateUserQueries(queryClient),
   });
 }

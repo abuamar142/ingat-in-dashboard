@@ -2,30 +2,32 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { getCurrentUser, getCurrentSession, checkAuth } from "./api";
+import { AUTH_QUERY_KEYS, AUTH_CACHE_CONFIG } from "@/constants";
 
-// Get current user
+/**
+ * Authentication query hooks
+ */
+
 export function useCurrentUser() {
   return useQuery({
-    queryKey: ["auth", "user"],
+    queryKey: AUTH_QUERY_KEYS.USER,
     queryFn: getCurrentUser,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: AUTH_CACHE_CONFIG.STALE_TIME,
   });
 }
 
-// Get current session
 export function useCurrentSession() {
   return useQuery({
-    queryKey: ["auth", "session"],
+    queryKey: AUTH_QUERY_KEYS.SESSION,
     queryFn: getCurrentSession,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: AUTH_CACHE_CONFIG.STALE_TIME,
   });
 }
 
-// Check authentication status
-export function useAuth() {
+export function useAuthStatus() {
   return useQuery({
-    queryKey: ["auth", "status"],
+    queryKey: AUTH_QUERY_KEYS.STATUS,
     queryFn: checkAuth,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: AUTH_CACHE_CONFIG.STALE_TIME,
   });
 }

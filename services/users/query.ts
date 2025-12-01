@@ -3,26 +3,30 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/components/providers/auth-provider";
 import { getUsers, getUserById } from "./api";
+import { USER_QUERY_KEYS, USER_CACHE_CONFIG } from "@/constants";
 
-// Get all users
+/**
+ * User query hooks
+ */
+
 export function useUsers() {
   const { user } = useAuth();
-  
+
   return useQuery({
-    queryKey: ["users"],
+    queryKey: USER_QUERY_KEYS.ROOT,
     queryFn: getUsers,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: USER_CACHE_CONFIG.STALE_TIME,
     enabled: !!user,
   });
 }
 
-// Get single user
 export function useUser(id: string) {
   const { user } = useAuth();
-  
+
   return useQuery({
-    queryKey: ["users", id],
+    queryKey: USER_QUERY_KEYS.DETAIL(id),
     queryFn: () => getUserById(id),
+    staleTime: USER_CACHE_CONFIG.STALE_TIME,
     enabled: !!id && !!user,
   });
 }

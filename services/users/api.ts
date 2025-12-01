@@ -1,29 +1,35 @@
 import { supabase } from "@/lib/supabase";
 import { IUser } from "@/interfaces/users";
+import { USER_TABLE_CONFIG } from "@/constants";
 
-// Get all users
+/**
+ * User API functions
+ */
+
 export async function getUsers(): Promise<IUser[]> {
   const { data, error } = await supabase
-    .from("users")
+    .from(USER_TABLE_CONFIG.NAME)
     .select("*")
-    .order("created_at", { ascending: false });
+    .order(USER_TABLE_CONFIG.ORDER_BY, { ascending: false });
 
   if (error) throw error;
   return (data as IUser[]) || [];
 }
 
-// Get single user by ID
 export async function getUserById(id: string): Promise<IUser> {
-  const { data, error } = await supabase.from("users").select("*").eq("id", id).single();
+  const { data, error } = await supabase
+    .from(USER_TABLE_CONFIG.NAME)
+    .select("*")
+    .eq("id", id)
+    .single();
 
   if (error) throw error;
   return data as IUser;
 }
 
-// Update user
 export async function updateUser(id: string, updates: Partial<IUser>): Promise<IUser> {
   const { data, error } = await supabase
-    .from("users")
+    .from(USER_TABLE_CONFIG.NAME)
     .update({
       ...updates,
       updated_at: new Date().toISOString(),
@@ -36,39 +42,39 @@ export async function updateUser(id: string, updates: Partial<IUser>): Promise<I
   return data as IUser;
 }
 
-// Delete user
 export async function deleteUser(id: string): Promise<void> {
-  const { error } = await supabase.from("users").delete().eq("id", id);
+  const { error } = await supabase.from(USER_TABLE_CONFIG.NAME).delete().eq("id", id);
 
   if (error) throw error;
 }
 
-// Create user
-export async function postCreateUser(
+export async function createUser(
   user: Omit<IUser, "id" | "created_at" | "updated_at">
 ): Promise<IUser> {
-  const { data, error } = await supabase.from("users").insert(user).select().single();
+  const { data, error } = await supabase
+    .from(USER_TABLE_CONFIG.NAME)
+    .insert(user)
+    .select()
+    .single();
 
   if (error) throw error;
   return data as IUser;
 }
 
-// Reset morning attendance for all users
 export async function resetMorningAttendance(): Promise<void> {
   const { error } = await supabase
-    .from("users")
+    .from(USER_TABLE_CONFIG.NAME)
     .update({ absen_pagi: false, updated_at: new Date().toISOString() })
-    .neq("id", "00000000-0000-0000-0000-000000000000"); // Update all rows
+    .neq("id", "00000000-0000-0000-0000-000000000000");
 
   if (error) throw error;
 }
 
-// Reset evening attendance for all users
 export async function resetEveningAttendance(): Promise<void> {
   const { error } = await supabase
-    .from("users")
+    .from(USER_TABLE_CONFIG.NAME)
     .update({ absen_sore: false, updated_at: new Date().toISOString() })
-    .neq("id", "00000000-0000-0000-0000-000000000000"); // Update all rows
+    .neq("id", "00000000-0000-0000-0000-000000000000");
 
   if (error) throw error;
 }

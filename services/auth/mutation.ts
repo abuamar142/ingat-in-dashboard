@@ -1,11 +1,36 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { signIn, signOut } from "./api";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+import { signIn, signOut } from "./api";
+import { AUTH_QUERY_KEYS, AUTH_ROUTES, USER_QUERY_KEYS } from "@/constants";
 
-// Sign in mutation
+/**
+ * Authentication mutations using React Query
+ */
+
+// Helper: Clear all storage
+const clearAllStorage = () => {
+  if (typeof window !== "undefined") {
+    localStorage.clear();
+    sessionStorage.clear();
+  }
+};
+
+// Helper: Force local signout
+const forceLocalSignOut = async () => {
+  try {
+    await supabase.auth.signOut({ scope: "local" });
+  } catch (error) {
+    console.error("Failed to force local signout:", error);
+  }
+};
+
+/**
+ * Sign in mutation hook
+ */
 export function useSignIn() {
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -14,42 +39,40 @@ export function useSignIn() {
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       signIn(email, password),
     onSuccess: () => {
-      // Invalidate auth queries
-      queryClient.invalidateQueries({ queryKey: ["auth"] });
+      queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.ROOT });
       toast.success("Login successful! Welcome back.");
-      router.push("/");
+      router.push(AUTH_ROUTES.HOME);
     },
   });
 }
 
-// Sign out mutation
+/**
+ * Sign out mutation hook
+ */
 export function useSignOut() {
   const queryClient = useQueryClient();
-  const router = useRouter();
 
   return useMutation({
-    mutationFn: signOut,
-    onSuccess: () => {
-      // Clear all auth queries
-      queryClient.removeQueries({ queryKey: ["auth"] });
-      // Clear users queries
-      queryClient.removeQueries({ queryKey: ["users"] });
-      toast.success("Logged out successfully.");
-      router.push("/login");
-    },
-    onError: (error) => {
-      // Force logout on error (e.g. session not found)
-      queryClient.removeQueries({ queryKey: ["auth"] });
-      queryClient.removeQueries({ queryKey: ["users"] });
-
-      // Check if it's a session error
-      if (error.message.includes("session") || error.message.includes("JWT")) {
-        toast.error("Session expired. Please login again.");
-      } else {
-        toast.error("Error logging out, but you have been signed out locally.");
+    mutationFn: async () => {
+      try {
+        await signOut();
+      } catch (error) {
+        console.error("Server logout failed:", error);
+        await forceLocalSignOut();
       }
+    },
+    onSuccess: () => {
+      // Clear all cached queries
+      queryClient.removeQueries({ queryKey: AUTH_QUERY_KEYS.ROOT });
+      queryClient.removeQueries({ queryKey: USER_QUERY_KEYS.ROOT });
 
-      router.push("/login");
+      // Clear all browser storage
+      clearAllStorage();
+
+      toast.success("Logged out successfully.");
+
+      // Force hard reload to ensure clean state
+      window.location.href = AUTH_ROUTES.LOGIN;
     },
   });
 }

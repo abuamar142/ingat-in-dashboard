@@ -9,13 +9,11 @@ import { logger } from "@/utils/logger";
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  signOut: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -29,7 +27,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Check initial session
     const checkSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
         setUser(session?.user ?? null);
         setInitialCheckDone(true);
         setLoading(false);
@@ -68,16 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, [router, pathname, initialCheckDone]);
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push("/login");
-  };
-
-  return (
-    <AuthContext.Provider value={{ user, loading, signOut: handleSignOut }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ user, loading }}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => {

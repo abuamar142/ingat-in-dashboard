@@ -1,6 +1,10 @@
 import { supabase } from "@/lib/supabase";
 
-// Check if user is authenticated
+/**
+ * Authentication API functions
+ * These functions handle direct communication with Supabase Auth
+ */
+
 export async function checkAuth() {
   const {
     data: { session },
@@ -8,7 +12,6 @@ export async function checkAuth() {
   return session;
 }
 
-// Sign in user
 export async function signIn(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -19,13 +22,11 @@ export async function signIn(email: string, password: string) {
   return data;
 }
 
-// Sign out user
 export async function signOut() {
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
 }
 
-// Get current user
 export async function getCurrentUser() {
   const {
     data: { user },
@@ -33,7 +34,6 @@ export async function getCurrentUser() {
   return user;
 }
 
-// Get current session
 export async function getCurrentSession() {
   const {
     data: { session },

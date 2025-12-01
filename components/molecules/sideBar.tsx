@@ -8,14 +8,16 @@ import { useState } from "react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/molecules/confirmDialog";
+import { useSignOut } from "@/services/auth";
 
 export function SideBar() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
+  const { mutate: signOut } = useSignOut();
 
   const handleSignOut = async () => {
-    await signOut();
+    signOut();
     setIsMobileMenuOpen(false);
   };
 
