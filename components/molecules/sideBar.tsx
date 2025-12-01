@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { LayoutDashboard, Users, Menu, X, LogOut, Shield } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -86,8 +87,14 @@ export function SideBar() {
             className="mb-10"
           >
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="p-2.5 bg-linear-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg shadow-blue-500/30 group-hover:shadow-xl group-hover:shadow-blue-500/40 transition-all">
-                <LayoutDashboard className="h-6 w-6 text-white" />
+              <div className="relative w-12 h-12 rounded-xl overflow-hidden shadow-lg group-hover:shadow-xl transition-all">
+                <Image
+                  src="/logo.webp"
+                  alt="Ingat-In Logo"
+                  fill
+                  className="object-cover"
+                  priority
+                />
               </div>
               <div>
                 <h1 className="text-xl font-bold bg-linear-to-br from-zinc-900 to-zinc-700 bg-clip-text text-transparent">
