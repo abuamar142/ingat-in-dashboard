@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import NextImage from "next/image";
 import { SideBar } from "@/components/molecules/sideBar";
 import { useAuth } from "@/components/providers/auth-provider";
 
@@ -9,13 +10,29 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
   const { loading, user } = useAuth();
   const isLoginPage = pathname === "/login";
 
-  // Show loading spinner while checking auth
+  // Show loading while checking auth
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="text-sm text-zinc-500 font-medium">Verifying session...</p>
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative flex items-center justify-center">
+            {/* Spinning ring */}
+            <div className="absolute h-32 w-32 animate-spin rounded-full border-2 border-primary/20 border-t-primary"></div>
+            {/* Logo */}
+            <div className="relative h-24 w-24 overflow-hidden rounded-full bg-white shadow-lg">
+              <NextImage
+                src="/logo.webp"
+                alt="Ingat-in Logo"
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <h3 className="text-lg font-semibold text-foreground tracking-tight">Ingat-in</h3>
+            <p className="text-sm text-muted-foreground animate-pulse">Verifying session...</p>
+          </div>
         </div>
       </div>
     );
