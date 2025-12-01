@@ -75,7 +75,7 @@ export function SideBar() {
         className={`
           fixed top-0 left-0 h-screen w-72 bg-white/95 backdrop-blur-xl border-r border-zinc-200/80 shadow-2xl z-40 transition-transform duration-300
           ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
-          lg:translate-x-0 lg:static lg:shadow-none
+          lg:translate-x-0 lg:sticky lg:top-0 lg:shadow-none
         `}
       >
         <div className="flex flex-col h-full p-6">
