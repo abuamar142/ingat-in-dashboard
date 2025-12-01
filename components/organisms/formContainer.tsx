@@ -75,7 +75,7 @@ export function FormContainer({
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8">
-            <form onSubmit={onSubmit} className="space-y-8">
+            <form onSubmit={onSubmit} className="space-y-4">
               {children}
             </form>
           </CardContent>
