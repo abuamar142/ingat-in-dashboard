@@ -1,56 +1,20 @@
 "use client";
 
-import { useMemo } from "react";
 import { motion, Variants } from "framer-motion";
-import { Users, CheckCircle, AlertTriangle, Activity } from "lucide-react";
-
-import { useUsers, useRecentActivity } from "@/services/users/query";
-import { RealtimeIndicator } from "@/components/atoms/realtimeIndicator";
-import { PageHeader } from "@/components/atoms/pageHeader";
-import { LoadingState } from "@/components/atoms/loadingState";
+import { MessageCircle, Shield, Activity, Code2, Database, Smartphone } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { IStats } from "@/interfaces/stats";
-import { StatCard } from "@/components/molecules/statCard";
+import { generateBotWhatsAppLink, BOT_NUMBER } from "@/utils/whatsapp";
 
-export default function Home() {
-  const { data: users = [], isLoading: loading, error } = useUsers();
-  const { data: recentActivity = [], isLoading: recentActivityLoading } = useRecentActivity();
-
-  const stats: IStats = useMemo(() => {
-    if (users.length === 0) {
-      return {
-        totalUsers: 0,
-        absenPagi: { sudah: 0, belum: 0, percentage: 0 },
-        absenSore: { sudah: 0, belum: 0, percentage: 0 },
-      };
-    }
-
-    const totalUsers = users.length;
-    const absenPagiSudah = users.filter((u) => u.absen_pagi).length;
-    const absenSoreSudah = users.filter((u) => u.absen_sore).length;
-
-    return {
-      totalUsers,
-      absenPagi: {
-        sudah: absenPagiSudah,
-        belum: totalUsers - absenPagiSudah,
-        percentage: totalUsers > 0 ? Math.round((absenPagiSudah / totalUsers) * 100) : 0,
-      },
-      absenSore: {
-        sudah: absenSoreSudah,
-        belum: totalUsers - absenSoreSudah,
-        percentage: totalUsers > 0 ? Math.round((absenSoreSudah / totalUsers) * 100) : 0,
-      },
-    };
-  }, [users]);
-
+export default function LandingPage() {
   const pageTransition: Variants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
       transition: {
-        duration: 0.4,
+        duration: 0.3,
         ease: "easeOut",
       },
     },
@@ -61,8 +25,8 @@ export default function Home() {
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.2,
+        staggerChildren: 0.1,
+        delayChildren: 0.1,
       },
     },
   };
@@ -73,153 +37,454 @@ export default function Home() {
       opacity: 1,
       y: 0,
       transition: {
-        type: "spring",
-        stiffness: 80,
-        damping: 15,
+        duration: 0.3,
+        ease: "easeOut",
       },
     },
   };
 
-  const formatPhoneNumber = (number: string) => {
-    return number.replace("@s.whatsapp.net", "");
+  const scrollItem: Variants = {
+    hidden: { opacity: 0, y: 30 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.3,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  const featureCard: Variants = {
+    hidden: { opacity: 0, scale: 0.95, y: 20 },
+    show: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: {
+        duration: 0.3,
+        ease: "easeOut",
+      },
+    },
   };
 
   return (
-    <motion.div
-      variants={pageTransition}
-      initial="hidden"
-      animate="show"
-      className="space-y-6 md:space-y-8"
-    >
-      {/* Header */}
-      <PageHeader
-        title="Dashboard Overview"
-        description="Real-time monitoring of WhatsApp Bot attendance system"
-        action={<RealtimeIndicator />}
-      />
-
-      {error && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          className="mb-6"
-        >
-          <Card className="border-destructive bg-destructive/10">
-            <CardContent className="flex items-center gap-4 p-4 text-destructive">
-              <AlertTriangle className="h-5 w-5" />
-              <div>
-                <p className="font-medium">Gagal memuat data</p>
-                <p className="text-sm">{error?.message || "Unknown error"}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
-
-      <motion.div
-        variants={container}
+    <>
+      {/* Skip to main content link for keyboard navigation */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-zinc-900 focus:text-white focus:rounded-md focus:shadow-lg focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2"
+      >
+        Skip to main content
+      </a>
+      <motion.main
+        id="main-content"
+        variants={pageTransition}
         initial="hidden"
         animate="show"
-        className="space-y-6 md:space-y-8"
+        className="min-h-screen bg-linear-to-br from-white via-zinc-50 to-zinc-100 overflow-x-hidden"
+        role="main"
+        aria-label="Landing page content"
       >
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-          <StatCard
-            title="Total Users"
-            value={stats.totalUsers}
-            icon={Users}
-            gradient="blue"
-            footer="↗ +2.5% from last week"
-            loading={loading}
-          />
-          <StatCard
-            title="Absen Pagi"
-            value={`${stats.absenPagi.sudah}/${stats.totalUsers}`}
-            icon={CheckCircle}
-            gradient="emerald"
-            progress={stats.absenPagi.percentage}
-            footer={`${stats.absenPagi.percentage}% Completion rate`}
-            loading={loading}
-          />
-          <StatCard
-            title="Absen Sore"
-            value={`${stats.absenSore.sudah}/${stats.totalUsers}`}
-            icon={CheckCircle}
-            gradient="violet"
-            progress={stats.absenSore.percentage}
-            footer={`${stats.absenSore.percentage}% Completion rate`}
-            loading={loading}
-          />
-        </div>
+        <div className="container mx-auto px-4 py-16 md:py-24 max-w-full">
+          <motion.div
+            variants={container}
+            initial="hidden"
+            animate="show"
+            className="space-y-12 md:space-y-16"
+          >
+            {/* Hero Section */}
+            <motion.div
+              variants={item}
+              className="text-center space-y-6 px-2"
+              role="region"
+              aria-labelledby="hero-heading"
+            >
+              <h1
+                id="hero-heading"
+                className="text-4xl sm:text-5xl md:text-7xl font-bold bg-linear-to-br from-zinc-900 to-zinc-700 bg-clip-text text-transparent wrap-break-word"
+              >
+                Ingat-In
+              </h1>
+              <p className="text-lg sm:text-xl md:text-2xl text-zinc-600 max-w-3xl mx-auto font-medium px-2">
+                WhatsApp Bot Attendance Reminder System
+              </p>
+              <p className="text-base sm:text-lg text-zinc-500 max-w-2xl mx-auto px-2">
+                Automated attendance tracking through WhatsApp with real-time monitoring dashboard
+              </p>
 
-        {/* Recent Activity */}
-        <motion.div variants={item}>
-          <Card className="shadow-xl border-zinc-200/50 overflow-hidden bg-white/90 backdrop-blur-2xl">
-            <CardHeader className="border-b border-zinc-100/80 pb-6 bg-linear-to-br from-zinc-50/50 to-white">
-              <CardTitle className="text-2xl font-bold bg-linear-to-br from-zinc-900 to-zinc-700 bg-clip-text text-transparent flex items-center gap-3">
-                <Activity className="h-6 w-6 text-zinc-700" />
-                Recent Activity
-              </CardTitle>
-              <p className="text-sm text-zinc-500 mt-2 font-medium">Latest check-ins from users</p>
-            </CardHeader>
-            <CardContent className="p-6">
-              {recentActivityLoading ? (
-                <LoadingState message="Loading activity..." />
-              ) : recentActivity.length > 0 ? (
-                <div className="space-y-4">
-                  {recentActivity.map((user, idx) => (
-                    <motion.div
-                      key={user.id || idx}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.1 }}
-                      className="flex items-center justify-between p-4 rounded-xl bg-zinc-50/50 hover:bg-zinc-100/50 transition-colors border border-zinc-100"
+              {/* CTA Buttons */}
+              <nav
+                className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-6 px-2"
+                aria-label="Primary actions"
+              >
+                <Button
+                  asChild
+                  size="lg"
+                  className="bg-linear-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 md:hover:scale-105 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 min-h-[44px] min-w-[44px] w-full sm:w-auto"
+                >
+                  <a
+                    href={generateBotWhatsAppLink()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-6 py-3"
+                    aria-label="Contact WhatsApp Bot - Opens in new window"
+                  >
+                    <MessageCircle className="h-5 w-5" aria-hidden="true" />
+                    <span>Contact WhatsApp Bot</span>
+                  </a>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="border-2 border-zinc-300 hover:border-zinc-400 hover:bg-zinc-50 transition-all duration-300 md:hover:scale-105 focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:ring-offset-2 min-h-[44px] min-w-[44px] w-full sm:w-auto"
+                >
+                  <Link
+                    href="/login"
+                    className="flex items-center gap-2 px-6 py-3"
+                    aria-label="Admin Login"
+                  >
+                    <Shield className="h-5 w-5" aria-hidden="true" />
+                    <span>Admin Login</span>
+                  </Link>
+                </Button>
+              </nav>
+            </motion.div>
+
+            {/* Features Section */}
+            <section
+              className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto px-2"
+              role="region"
+              aria-labelledby="features-heading"
+            >
+              <h2 id="features-heading" className="sr-only">
+                Key Features
+              </h2>
+              <motion.div
+                variants={featureCard}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, margin: "-50px" }}
+              >
+                <Card
+                  className="shadow-xl border-zinc-200/50 overflow-hidden bg-white/90 md:backdrop-blur-2xl hover:shadow-2xl transition-all duration-300 md:hover:scale-[1.02] focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 h-full"
+                  role="article"
+                  aria-labelledby="feature-monitoring"
+                >
+                  <CardHeader className="pb-4">
+                    <div
+                      className="w-12 h-12 min-w-[44px] min-h-[44px] rounded-xl bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center mb-4 shadow-lg"
+                      aria-hidden="true"
                     >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                          <Users className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-zinc-900 font-mono text-sm">
-                            {formatPhoneNumber(user.number)}
-                          </p>
-                          <p className="text-xs text-zinc-500">
-                            {user.last_checkin &&
-                              new Date(user.last_checkin).toLocaleString("id-ID")}
-                          </p>
-                        </div>
+                      <Activity className="h-6 w-6 text-white" aria-hidden="true" />
+                    </div>
+                    <CardTitle id="feature-monitoring" className="text-xl font-bold text-zinc-900">
+                      Real-time Monitoring
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-zinc-600 font-medium">
+                      Track attendance status in real-time with live dashboard updates
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              <motion.div
+                variants={featureCard}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ delay: 0.1 }}
+              >
+                <Card
+                  className="shadow-xl border-zinc-200/50 overflow-hidden bg-white/90 md:backdrop-blur-2xl hover:shadow-2xl transition-all duration-300 md:hover:scale-[1.02] focus-within:ring-2 focus-within:ring-emerald-500 focus-within:ring-offset-2 h-full"
+                  role="article"
+                  aria-labelledby="feature-reminders"
+                >
+                  <CardHeader className="pb-4">
+                    <div
+                      className="w-12 h-12 min-w-[44px] min-h-[44px] rounded-xl bg-linear-to-br from-emerald-500 to-emerald-600 flex items-center justify-center mb-4 shadow-lg"
+                      aria-hidden="true"
+                    >
+                      <MessageCircle className="h-6 w-6 text-white" aria-hidden="true" />
+                    </div>
+                    <CardTitle id="feature-reminders" className="text-xl font-bold text-zinc-900">
+                      Automatic Reminders
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-zinc-600 font-medium">
+                      Automated WhatsApp reminders for morning and evening attendance
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              <motion.div
+                variants={featureCard}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ delay: 0.2 }}
+              >
+                <Card
+                  className="shadow-xl border-zinc-200/50 overflow-hidden bg-white/90 md:backdrop-blur-2xl hover:shadow-2xl transition-all duration-300 md:hover:scale-[1.02] focus-within:ring-2 focus-within:ring-violet-500 focus-within:ring-offset-2 h-full"
+                  role="article"
+                  aria-labelledby="feature-integration"
+                >
+                  <CardHeader className="pb-4">
+                    <div
+                      className="w-12 h-12 min-w-[44px] min-h-[44px] rounded-xl bg-linear-to-br from-violet-500 to-violet-600 flex items-center justify-center mb-4 shadow-lg"
+                      aria-hidden="true"
+                    >
+                      <Shield className="h-6 w-6 text-white" aria-hidden="true" />
+                    </div>
+                    <CardTitle id="feature-integration" className="text-xl font-bold text-zinc-900">
+                      WhatsApp Integration
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-zinc-600 font-medium">
+                      Seamless integration with WhatsApp for easy user interaction
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </section>
+
+            {/* How It Works Section */}
+            <motion.section
+              variants={scrollItem}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-50px" }}
+              className="max-w-4xl mx-auto px-2"
+              role="region"
+              aria-labelledby="how-it-works-heading"
+            >
+              <Card className="shadow-xl border-zinc-200/50 overflow-hidden bg-white/90 md:backdrop-blur-2xl focus-within:ring-2 focus-within:ring-zinc-500 focus-within:ring-offset-2 transition-all duration-300">
+                <CardHeader className="border-b border-zinc-100/80 pb-6 bg-linear-to-br from-zinc-50/50 to-white">
+                  <CardTitle
+                    id="how-it-works-heading"
+                    className="text-2xl sm:text-3xl font-bold bg-linear-to-br from-zinc-900 to-zinc-700 bg-clip-text text-transparent text-center"
+                  >
+                    How It Works
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 sm:p-6 md:p-8">
+                  <ol className="space-y-6" role="list" aria-label="Steps to get started">
+                    <li className="flex items-start gap-3 sm:gap-4">
+                      <div
+                        className="w-10 h-10 min-w-[44px] min-h-[44px] rounded-full bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center shrink-0 text-white font-bold shadow-lg"
+                        aria-hidden="true"
+                      >
+                        1
                       </div>
-                      <div className="flex gap-2">
-                        {user.absen_pagi && (
-                          <Badge
-                            variant="outline"
-                            className="bg-emerald-50 text-emerald-700 border-emerald-300"
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-base sm:text-lg text-zinc-900 mb-2">
+                          Save Bot Number
+                        </h3>
+                        <p className="text-sm sm:text-base text-zinc-600 font-medium wrap-break-word">
+                          Save{" "}
+                          <span
+                            className="font-mono font-semibold text-xs sm:text-sm"
+                            aria-label="Bot phone number"
                           >
-                            Morning
-                          </Badge>
-                        )}
-                        {user.absen_sore && (
-                          <Badge
-                            variant="outline"
-                            className="bg-violet-50 text-violet-700 border-violet-300"
-                          >
-                            Evening
-                          </Badge>
-                        )}
+                            {BOT_NUMBER}
+                          </span>{" "}
+                          to your contacts
+                        </p>
                       </div>
-                    </motion.div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 text-zinc-500">
-                  <Activity className="mx-auto h-12 w-12 mb-4 text-zinc-300" />
-                  <p className="text-sm font-medium">No recent activity</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-      </motion.div>
-    </motion.div>
+                    </li>
+                    <li className="flex items-start gap-3 sm:gap-4">
+                      <div
+                        className="w-10 h-10 min-w-[44px] min-h-[44px] rounded-full bg-linear-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shrink-0 text-white font-bold shadow-lg"
+                        aria-hidden="true"
+                      >
+                        2
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-base sm:text-lg text-zinc-900 mb-2">
+                          Start Conversation
+                        </h3>
+                        <p className="text-sm sm:text-base text-zinc-600 font-medium wrap-break-word">
+                          Send{" "}
+                          <span className="font-mono font-semibold" aria-label="Start command">
+                            halo
+                          </span>{" "}
+                          to the bot to begin
+                        </p>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3 sm:gap-4">
+                      <div
+                        className="w-10 h-10 min-w-[44px] min-h-[44px] rounded-full bg-linear-to-br from-violet-500 to-violet-600 flex items-center justify-center shrink-0 text-white font-bold shadow-lg"
+                        aria-hidden="true"
+                      >
+                        3
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-base sm:text-lg text-zinc-900 mb-2">
+                          Receive Reminders
+                        </h3>
+                        <p className="text-sm sm:text-base text-zinc-600 font-medium wrap-break-word">
+                          Get automatic attendance reminders and track your check-ins
+                        </p>
+                      </div>
+                    </li>
+                  </ol>
+                </CardContent>
+              </Card>
+            </motion.section>
+
+            {/* Tech Stack Section */}
+            <motion.section
+              variants={scrollItem}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-50px" }}
+              className="text-center space-y-8 max-w-5xl mx-auto px-2"
+              role="region"
+              aria-labelledby="tech-stack-heading"
+            >
+              <div className="space-y-4">
+                <h2
+                  id="tech-stack-heading"
+                  className="text-2xl sm:text-3xl font-bold bg-linear-to-br from-zinc-900 to-zinc-700 bg-clip-text text-transparent"
+                >
+                  Built with Modern Technology
+                </h2>
+                <p className="text-sm sm:text-base text-zinc-600 max-w-2xl mx-auto font-medium px-2">
+                  Dual-project architecture: WhatsApp Bot (Node.js + Baileys) and Web Dashboard
+                  (Next.js + TypeScript + Supabase)
+                </p>
+              </div>
+
+              {/* Technology Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-2">
+                {/* Web Dashboard Technologies */}
+                <Card
+                  className="shadow-xl border-zinc-200/50 overflow-hidden bg-white/90 md:backdrop-blur-2xl hover:shadow-2xl transition-all duration-300 md:hover:scale-[1.02] focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 text-left"
+                  role="article"
+                  aria-labelledby="tech-dashboard"
+                >
+                  <CardHeader className="pb-4 border-b border-zinc-100/80 bg-linear-to-br from-blue-50/50 to-white">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-10 h-10 min-w-[44px] min-h-[44px] rounded-lg bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg"
+                        aria-hidden="true"
+                      >
+                        <Code2 className="h-5 w-5 text-white" aria-hidden="true" />
+                      </div>
+                      <CardTitle
+                        id="tech-dashboard"
+                        className="text-lg sm:text-xl font-bold text-zinc-900"
+                      >
+                        Web Dashboard
+                      </CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="flex flex-wrap gap-2">
+                      <Badge className="bg-linear-to-r from-zinc-800 to-zinc-900 text-white hover:from-zinc-900 hover:to-zinc-950 px-3 py-1.5 text-xs sm:text-sm transition-all duration-200 md:hover:scale-105 cursor-default min-h-[32px]">
+                        Next.js
+                      </Badge>
+                      <Badge className="bg-linear-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 px-3 py-1.5 text-xs sm:text-sm transition-all duration-200 md:hover:scale-105 cursor-default min-h-[32px]">
+                        TypeScript
+                      </Badge>
+                      <Badge className="bg-linear-to-r from-emerald-600 to-emerald-700 text-white hover:from-emerald-700 hover:to-emerald-800 px-3 py-1.5 text-xs sm:text-sm transition-all duration-200 md:hover:scale-105 cursor-default min-h-[32px]">
+                        Supabase
+                      </Badge>
+                      <Badge className="bg-linear-to-r from-cyan-600 to-cyan-700 text-white hover:from-cyan-700 hover:to-cyan-800 px-3 py-1.5 text-xs sm:text-sm transition-all duration-200 md:hover:scale-105 cursor-default min-h-[32px]">
+                        Tailwind CSS
+                      </Badge>
+                      <Badge className="bg-linear-to-r from-violet-600 to-violet-700 text-white hover:from-violet-700 hover:to-violet-800 px-3 py-1.5 text-xs sm:text-sm transition-all duration-200 md:hover:scale-105 cursor-default min-h-[32px]">
+                        Framer Motion
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* WhatsApp Bot Technologies */}
+                <Card
+                  className="shadow-xl border-zinc-200/50 overflow-hidden bg-white/90 md:backdrop-blur-2xl hover:shadow-2xl transition-all duration-300 md:hover:scale-[1.02] focus-within:ring-2 focus-within:ring-emerald-500 focus-within:ring-offset-2 text-left"
+                  role="article"
+                  aria-labelledby="tech-bot"
+                >
+                  <CardHeader className="pb-4 border-b border-zinc-100/80 bg-linear-to-br from-emerald-50/50 to-white">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-10 h-10 min-w-[44px] min-h-[44px] rounded-lg bg-linear-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg"
+                        aria-hidden="true"
+                      >
+                        <Smartphone className="h-5 w-5 text-white" aria-hidden="true" />
+                      </div>
+                      <CardTitle
+                        id="tech-bot"
+                        className="text-lg sm:text-xl font-bold text-zinc-900"
+                      >
+                        WhatsApp Bot
+                      </CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="flex flex-wrap gap-2">
+                      <Badge className="bg-linear-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 px-3 py-1.5 text-xs sm:text-sm transition-all duration-200 md:hover:scale-105 cursor-default min-h-[32px]">
+                        Node.js
+                      </Badge>
+                      <Badge className="bg-linear-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 px-3 py-1.5 text-xs sm:text-sm transition-all duration-200 md:hover:scale-105 cursor-default min-h-[32px]">
+                        TypeScript
+                      </Badge>
+                      <Badge className="bg-linear-to-r from-emerald-600 to-emerald-700 text-white hover:from-emerald-700 hover:to-emerald-800 px-3 py-1.5 text-xs sm:text-sm transition-all duration-200 md:hover:scale-105 cursor-default min-h-[32px]">
+                        Baileys
+                      </Badge>
+                      <Badge className="bg-linear-to-r from-teal-600 to-teal-700 text-white hover:from-teal-700 hover:to-teal-800 px-3 py-1.5 text-xs sm:text-sm transition-all duration-200 md:hover:scale-105 cursor-default min-h-[32px]">
+                        Supabase
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Architecture Info */}
+              <div className="pt-4">
+                <Card
+                  className="shadow-lg border-zinc-200/50 overflow-hidden bg-linear-to-br from-zinc-50/80 to-white/80 md:backdrop-blur-2xl hover:shadow-xl transition-all duration-300 focus-within:ring-2 focus-within:ring-violet-500 focus-within:ring-offset-2"
+                  role="article"
+                  aria-labelledby="architecture-heading"
+                >
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <div
+                        className="w-10 h-10 min-w-[44px] min-h-[44px] rounded-lg bg-linear-to-br from-violet-500 to-violet-600 flex items-center justify-center shrink-0 shadow-lg"
+                        aria-hidden="true"
+                      >
+                        <Database className="h-5 w-5 text-white" aria-hidden="true" />
+                      </div>
+                      <div className="text-left flex-1 min-w-0">
+                        <h3
+                          id="architecture-heading"
+                          className="font-semibold text-base sm:text-lg text-zinc-900 mb-2"
+                        >
+                          Dual-Project Architecture
+                        </h3>
+                        <p className="text-zinc-600 text-xs sm:text-sm leading-relaxed font-medium wrap-break-word">
+                          Two independent projects working together: the WhatsApp Bot handles
+                          automated reminders and user interactions, while the Web Dashboard
+                          provides real-time monitoring and administrative controls. Both share a
+                          unified Supabase database for seamless data synchronization.
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </motion.section>
+          </motion.div>
+        </div>
+      </motion.main>
+    </>
   );
 }

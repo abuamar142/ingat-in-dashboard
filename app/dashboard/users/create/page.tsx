@@ -55,7 +55,7 @@ export default function CreateUserPage() {
       });
 
       toast.success("User created successfully!");
-      router.push("/users");
+      router.push("/dashboard/users");
     } catch (error) {
       logger.error("Error creating user:", error);
       toast.error("Failed to create user. Please try again.");
@@ -110,7 +110,7 @@ export default function CreateUserPage() {
       />
 
       <FormActions
-        onCancel={() => router.push("/users")}
+        onCancel={() => router.push("/dashboard/users")}
         submitLabel="Create User"
         submitIcon={Save}
         isLoading={createUserMutation.isPending}

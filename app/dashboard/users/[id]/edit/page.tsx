@@ -38,7 +38,7 @@ export default function EditUserPage() {
       name: user?.name || "",
       absen_pagi: user?.absen_pagi || false,
       absen_sore: user?.absen_sore || false,
-      suspend_until: user?.suspend_until 
+      suspend_until: user?.suspend_until
         ? new Date(user.suspend_until).toISOString().slice(0, 16)
         : "",
     }),
@@ -70,7 +70,7 @@ export default function EditUserPage() {
       });
 
       toast.success("User updated successfully!");
-      router.push("/users");
+      router.push("/dashboard/users");
     } catch (error) {
       logger.error("Error updating user:", error);
       toast.error("Failed to update user. Please try again.");
@@ -154,7 +154,7 @@ export default function EditUserPage() {
           )}
 
           <FormActions
-            onCancel={() => router.push("/users")}
+            onCancel={() => router.push("/dashboard/users")}
             submitLabel="Save Changes"
             submitIcon={Save}
             isLoading={updateUserMutation.isPending}

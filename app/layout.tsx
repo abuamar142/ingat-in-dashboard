@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "@/components/providers";
-import { LayoutContent } from "@/components/features/layout-content";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
@@ -17,9 +16,7 @@ export default function RootLayout({
   return (
     <html lang="id" suppressHydrationWarning>
       <body className="antialiased">
-        <Providers>
-          <LayoutContent>{children}</LayoutContent>
-        </Providers>
+        <Providers>{children}</Providers>
         <Toaster />
       </body>
     </html>

@@ -66,7 +66,7 @@ export default function UsersPage() {
   };
 
   const handleEditClick = (user: IUser) => {
-    router.push(`/users/${user.id}/edit`);
+    router.push(`/dashboard/users/${user.id}/edit`);
   };
 
   const pageTransition = {
@@ -129,7 +129,7 @@ export default function UsersPage() {
               />
             </div>
             <Button
-              onClick={() => router.push("/users/create")}
+              onClick={() => router.push("/dashboard/users/create")}
               className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
             >
               <Plus className="h-4 w-4 mr-2" />

@@ -25,23 +25,23 @@ export function SideBar() {
   const menuItems = [
     {
       name: "Dashboard",
-      href: "/",
+      href: "/dashboard",
       icon: LayoutDashboard,
     },
     {
       name: "Users",
-      href: "/users",
+      href: "/dashboard/users",
       icon: Users,
     },
     {
       name: "Admin",
-      href: "/admin",
+      href: "/dashboard/admin",
       icon: Shield,
     },
   ];
 
   const isActive = (href: string) => {
-    if (href === "/") return pathname === "/";
+    if (href === "/dashboard") return pathname === "/dashboard";
     return pathname.startsWith(href);
   };
 
@@ -86,7 +86,7 @@ export function SideBar() {
             transition={{ delay: 0.1 }}
             className="mb-10"
           >
-            <Link href="/" className="flex items-center gap-3 group">
+            <Link href="/dashboard" className="flex items-center gap-3 group">
               <div className="relative w-12 h-12 rounded-xl overflow-hidden shadow-lg group-hover:shadow-xl transition-all">
                 <Image
                   src="/logo.webp"

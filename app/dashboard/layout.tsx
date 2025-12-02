@@ -1,14 +1,21 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import NextImage from "next/image";
 import { SideBar } from "@/components/molecules/sideBar";
 import { useAuth } from "@/components/providers/auth-provider";
 
-export function LayoutContent({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const { loading, user } = useAuth();
-  const isLoginPage = pathname === "/login";
+
+  // Redirect unauthenticated users to login
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace("/login");
+    }
+  }, [loading, user, router]);
 
   // Show loading while checking auth
   if (loading) {
@@ -39,7 +46,8 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!isLoginPage && !user) {
+  // Show loading spinner while redirecting unauthenticated users
+  if (!user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -47,11 +55,7 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Render login page without sidebar
-  if (isLoginPage) {
-    return <>{children}</>;
-  }
-
+  // Render dashboard with sidebar for authenticated users
   return (
     <div className="flex min-h-screen bg-background relative">
       {/* Background */}

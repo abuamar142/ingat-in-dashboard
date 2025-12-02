@@ -13,7 +13,7 @@ export const AUTH_QUERY_KEYS = {
 // Routes
 export const AUTH_ROUTES = {
   LOGIN: "/login",
-  HOME: "/",
+  HOME: "/dashboard",
 } as const;
 
 // Cache Configuration

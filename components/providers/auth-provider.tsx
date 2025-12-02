@@ -36,10 +36,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
 
         // Redirect logic after checking session
-        if (!session && pathname !== "/login") {
+        const isProtectedRoute = pathname.startsWith("/dashboard");
+
+        if (!session && isProtectedRoute) {
           router.replace("/login");
         } else if (session && pathname === "/login") {
-          router.replace("/");
+          router.replace("/dashboard");
         }
       } catch (error) {
         logger.error("Error checking session:", error);
@@ -58,10 +60,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Only redirect after initial check is done
       if (initialCheckDone) {
-        if (!session && pathname !== "/login") {
+        const isProtectedRoute = pathname.startsWith("/dashboard");
+
+        if (!session && isProtectedRoute) {
           router.replace("/login");
         } else if (session && pathname === "/login") {
-          router.replace("/");
+          router.replace("/dashboard");
         }
       }
     });
