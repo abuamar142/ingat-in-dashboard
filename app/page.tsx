@@ -77,7 +77,7 @@ export default function LandingPage() {
         variants={pageTransition}
         initial="hidden"
         animate="show"
-        className="min-h-screen bg-linear-to-br from-white via-zinc-50 to-zinc-100 overflow-x-hidden"
+        className="min-h-screen bg-linear-to-br from-white via-zinc-50 to-zinc-100"
         role="main"
         aria-label="Landing page content"
       >

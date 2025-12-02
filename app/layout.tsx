@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
+import TargetCursor from "@/components/TargetCursor";
 
 export const metadata: Metadata = {
   title: "Ingat-In Dashboard",
@@ -16,6 +17,7 @@ export default function RootLayout({
   return (
     <html lang="id" suppressHydrationWarning>
       <body className="antialiased">
+        <TargetCursor spinDuration={2} hideDefaultCursor={true} parallaxOn={true} />
         <Providers>{children}</Providers>
         <Toaster />
       </body>

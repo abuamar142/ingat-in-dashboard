@@ -21,12 +21,6 @@ export function HeroSection({ container, item }: HeroSectionProps) {
       role="region"
       aria-labelledby="hero-heading"
     >
-      {/* Gradient Background */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-400/20 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl" />
-      </div>
-
       <motion.div variants={item} className="space-y-6 max-w-4xl mx-auto">
         <div className="inline-flex items-center px-4 py-2 rounded-full bg-linear-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 backdrop-blur-sm">
           <span className="text-sm font-medium text-emerald-700">
@@ -60,7 +54,7 @@ export function HeroSection({ container, item }: HeroSectionProps) {
         <Button
           asChild
           size="lg"
-          className="bg-linear-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 min-h-12 text-base font-semibold w-full sm:w-auto"
+          className="cursor-target bg-linear-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 min-h-12 text-base font-semibold w-full sm:w-auto"
         >
           <a
             href={generateBotWhatsAppLink()}
@@ -77,7 +71,7 @@ export function HeroSection({ container, item }: HeroSectionProps) {
           asChild
           size="lg"
           variant="outline"
-          className="border-2 border-zinc-300 hover:border-zinc-400 hover:bg-zinc-100 transition-all duration-300 hover:scale-105 focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:ring-offset-2 min-h-12 text-base font-semibold w-full sm:w-auto"
+          className="cursor-target border-2 border-zinc-300 hover:border-zinc-400 hover:bg-zinc-100 transition-all duration-300 hover:scale-105 focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:ring-offset-2 min-h-12 text-base font-semibold w-full sm:w-auto"
         >
           <Link
             href="/login"
