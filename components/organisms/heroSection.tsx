@@ -2,11 +2,11 @@
 
 import { motion, Variants } from "framer-motion";
 import { MessageCircle, Shield } from "lucide-react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { generateBotWhatsAppLink } from "@/utils/whatsapp";
 import NextImage from "next/image";
 import TextType from "../TextType";
+import Link from "next/link";
 
 interface HeroSectionProps {
   container: Variants;

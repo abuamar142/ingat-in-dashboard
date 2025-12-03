@@ -1,4 +1,5 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 let client: SupabaseClient | null = null;
 
@@ -12,30 +13,9 @@ export function getSupabaseClient(): SupabaseClient {
     throw new Error("Missing Supabase environment variables");
   }
 
-  client = createClient(supabaseUrl, supabaseAnonKey, {
-    realtime: {
-      params: {
-        eventsPerSecond: 10,
-      },
-    },
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-      storageKey: "ingatin-auth-token",
-    },
-    global: {
-      headers: {
-        "x-client-info": "ingat-in-dashboard",
-      },
-    },
-    db: {
-      schema: "public",
-    },
-  });
+  client = createBrowserClient(supabaseUrl, supabaseAnonKey);
 
   return client;
 }
 
-// Export singleton instance
 export const supabase = getSupabaseClient();
