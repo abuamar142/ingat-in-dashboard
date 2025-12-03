@@ -38,7 +38,7 @@ export function HeroSection({ container, item }: HeroSectionProps) {
 
           <div className="w-full">
             <TextType
-              text={["Ingat In", "WhatsApp Bot", "Attendance Reminder"]}
+              text={["Ingat In", "WhatsApp Bot"]}
               typingSpeed={50}
               pauseDuration={1500}
               showCursor={true}
