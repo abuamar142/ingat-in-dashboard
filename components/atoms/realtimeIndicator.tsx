@@ -1,11 +1,13 @@
 "use client";
 
-import { Activity } from "lucide-react";
+import { Wifi, WifiOff } from "lucide-react";
 import { useUsers } from "@/services/users/query";
+import { useRealtimeStatus } from "@/hooks/useRealtimeStatus";
 import { useEffect, useState, useRef } from "react";
 
 export function RealtimeIndicator() {
   const { dataUpdatedAt } = useUsers();
+  const realtimeStatus = useRealtimeStatus();
   const [displayTime, setDisplayTime] = useState("");
   const [justUpdated, setJustUpdated] = useState(false);
   const prevUpdatedAt = useRef(dataUpdatedAt);
@@ -51,25 +53,50 @@ export function RealtimeIndicator() {
     };
   }, [dataUpdatedAt]);
 
+  const getStatusColor = () => {
+    if (justUpdated) return "bg-emerald-500";
+    if (realtimeStatus === "connected") return "bg-blue-500";
+    if (realtimeStatus === "disconnected") return "bg-red-500";
+    return "bg-yellow-500";
+  };
+
+  const getStatusText = () => {
+    if (realtimeStatus === "connected") return "Live";
+    if (realtimeStatus === "disconnected") return "Offline";
+    return "Connecting...";
+  };
+
+  const StatusIcon = realtimeStatus === "disconnected" ? WifiOff : Wifi;
+
   return (
     <div className="flex items-center gap-2 text-xs md:text-sm text-zinc-500 bg-white/70 px-3 py-1.5 md:px-4 md:py-2 rounded-xl border border-zinc-200/60 backdrop-blur-sm shadow-sm">
       <span className={`relative flex h-2.5 w-2.5`}>
         <span
-          className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-            justUpdated ? "bg-emerald-500" : "bg-blue-500"
-          }`}
+          className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${getStatusColor()}`}
         ></span>
         <span
-          className={`relative inline-flex rounded-full h-2.5 w-2.5 transition-colors duration-300 ${
-            justUpdated ? "bg-emerald-500" : "bg-blue-500"
-          }`}
+          className={`relative inline-flex rounded-full h-2.5 w-2.5 transition-colors duration-300 ${getStatusColor()}`}
         ></span>
       </span>
-      <Activity className="h-4 w-4 text-zinc-400" />
+      <StatusIcon className="h-4 w-4 text-zinc-400" />
       <span className="font-medium">{displayTime}</span>
-      {justUpdated && (
-        <span className="text-xs text-emerald-600 font-semibold animate-pulse">Updated!</span>
-      )}
+      <span className="text-xs font-semibold">
+        {justUpdated ? (
+          <span className="text-emerald-600 animate-pulse">Updated!</span>
+        ) : (
+          <span
+            className={
+              realtimeStatus === "connected"
+                ? "text-blue-600"
+                : realtimeStatus === "disconnected"
+                ? "text-red-600"
+                : "text-yellow-600"
+            }
+          >
+            {getStatusText()}
+          </span>
+        )}
+      </span>
     </div>
   );
 }
