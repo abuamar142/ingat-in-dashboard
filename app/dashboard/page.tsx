@@ -155,7 +155,7 @@ export default function Home() {
         {/* Recent Activity */}
         <motion.div variants={item}>
           <Card className="shadow-xl border-zinc-200/50 overflow-hidden bg-white/90 backdrop-blur-2xl">
-            <CardHeader className="border-b border-zinc-100/80 pb-6 bg-linear-to-br from-zinc-50/50 to-white">
+            <CardHeader className="bg-linear-to-br from-zinc-50/50 to-white">
               <CardTitle className="text-2xl font-bold bg-linear-to-br from-zinc-900 to-zinc-700 bg-clip-text text-transparent flex items-center gap-3">
                 <Activity className="h-6 w-6 text-zinc-700" />
                 Recent Activity
@@ -166,34 +166,47 @@ export default function Home() {
               {recentActivityLoading ? (
                 <LoadingState message="Loading activity..." />
               ) : recentActivity.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {recentActivity.map((user, idx) => (
                     <motion.div
                       key={user.id || idx}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.1 }}
-                      className="flex items-center justify-between p-4 rounded-xl bg-zinc-50/50 hover:bg-zinc-100/50 transition-colors border border-zinc-100"
+                      transition={{ delay: idx * 0.05 }}
+                      className="group flex items-center justify-between p-5 rounded-xl bg-linear-to-br from-zinc-50/80 to-white hover:from-zinc-100/80 hover:to-zinc-50/50 transition-all duration-300 border border-zinc-200/60 hover:border-zinc-300/80 hover:shadow-md"
                     >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                          <Users className="h-5 w-5 text-blue-600" />
+                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                        <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                          <Users className="h-6 w-6 text-white" />
                         </div>
-                        <div>
-                          <p className="font-semibold text-zinc-900 font-mono text-sm">
+                        <div className="flex-1 min-w-0">
+                          {user.name && (
+                            <p className="font-semibold text-zinc-900 text-base truncate">
+                              {user.name}
+                            </p>
+                          )}
+                          <p
+                            className={`font-mono text-xs ${
+                              user.name ? "text-zinc-500" : "font-semibold text-zinc-900 text-base"
+                            }`}
+                          >
                             {formatPhoneNumber(user.number)}
                           </p>
-                          <p className="text-xs text-zinc-500">
+                          <p className="text-xs text-zinc-400 mt-1 flex items-center gap-1">
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-zinc-400"></span>
                             {user.last_checkin &&
-                              new Date(user.last_checkin).toLocaleString("id-ID")}
+                              new Date(user.last_checkin).toLocaleString("id-ID", {
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                              })}
                           </p>
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 shrink-0 ml-4">
                         {user.absen_pagi && (
                           <Badge
                             variant="outline"
-                            className="bg-emerald-50 text-emerald-700 border-emerald-300"
+                            className="bg-linear-to-br from-emerald-50 to-emerald-100/50 text-emerald-700 border-emerald-300 font-medium shadow-sm"
                           >
                             Morning
                           </Badge>
@@ -201,7 +214,7 @@ export default function Home() {
                         {user.absen_sore && (
                           <Badge
                             variant="outline"
-                            className="bg-violet-50 text-violet-700 border-violet-300"
+                            className="bg-linear-to-br from-violet-50 to-violet-100/50 text-violet-700 border-violet-300 font-medium shadow-sm"
                           >
                             Evening
                           </Badge>
@@ -211,9 +224,12 @@ export default function Home() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 text-zinc-500">
-                  <Activity className="mx-auto h-12 w-12 mb-4 text-zinc-300" />
-                  <p className="text-sm font-medium">No recent activity</p>
+                <div className="text-center py-16 text-zinc-500">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-linear-to-br from-zinc-100 to-zinc-200 flex items-center justify-center">
+                    <Activity className="h-10 w-10 text-zinc-400" />
+                  </div>
+                  <p className="text-base font-semibold text-zinc-600">No recent activity</p>
+                  <p className="text-sm text-zinc-400 mt-1">Check-ins will appear here</p>
                 </div>
               )}
             </CardContent>
